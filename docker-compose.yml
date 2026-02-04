@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: galactic_ledger_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: galactic_ledger
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: galactic_ledger_backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql+aiomysql://user:password@db/galactic_ledger
+    depends_on:
+      - db
+
+  # Frontend container for production build or dev (adjust as needed)
+  # For development, you often run npm run dev locally, but here is a dockerized dev setup
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: galactic_ledger_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
