@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 from app.db.session import engine
+from app.core.config import settings
+from app.api.api import api_router
 
 # Setup logger
 logger = logging.getLogger("uvicorn.info")
@@ -37,6 +39,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def read_root():
