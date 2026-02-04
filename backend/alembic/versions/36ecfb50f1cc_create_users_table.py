@@ -25,7 +25,7 @@ def upgrade() -> None:
         sa.Column('discord_id', sa.String(length=50), nullable=False),
         sa.Column('username', sa.String(length=100), nullable=True),
         sa.Column('avatar_url', sa.String(length=255), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )

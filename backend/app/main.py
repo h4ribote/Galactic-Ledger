@@ -3,9 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlalchemy import text
-from app.db.session import engine
+from app.db.session import engine, SessionLocal
 from app.core.config import settings
 from app.api.api import api_router
+from app.services.galaxy import initialize_galaxy
 
 # Setup logger
 logger = logging.getLogger("uvicorn.info")
@@ -18,8 +19,13 @@ async def lifespan(app: FastAPI):
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("Database connection successful.")
+
+        # Initialize Galaxy Data
+        async with SessionLocal() as session:
+            await initialize_galaxy(session)
+
     except Exception as e:
-        logger.error(f"Database connection failed: {e}")
+        logger.error(f"Startup failed: {e}")
     yield
     # Shutdown
     await engine.dispose()
