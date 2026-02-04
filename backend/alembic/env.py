@@ -12,7 +12,7 @@ from alembic import context
 # Ensure the app is in the path
 sys.path.append(os.getcwd())
 
-from app.models.base import Base
+from app.models import Base
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides
