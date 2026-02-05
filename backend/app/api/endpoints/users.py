@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from typing import List
 from jose import jwt, JWTError
 from app.api import deps
 from app.core.config import settings
 from app.models.user import User
-from app.models.wallet import Wallet
+from app.models.wallet import Balance
 from app.schemas import wallet as wallet_schema
 
 router = APIRouter()
@@ -49,29 +49,16 @@ def read_users_me(current_user: User = Depends(get_current_user)):
         "avatar_url": current_user.avatar_url
     }
 
-@router.get("/me/wallet", response_model=wallet_schema.Wallet)
-async def read_user_wallet(
+@router.get("/me/balances", response_model=List[wallet_schema.Balance])
+async def read_user_balances(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(deps.get_db)
 ):
     """
-    Get current user's wallet and balances.
+    Get current user's balances.
     """
     result = await db.execute(
-        select(Wallet).options(selectinload(Wallet.balances)).where(Wallet.user_id == current_user.id)
+        select(Balance).where(Balance.user_id == current_user.id)
     )
-    wallet = result.scalars().first()
-
-    if not wallet:
-        # Create wallet if it doesn't exist
-        wallet = Wallet(user_id=current_user.id)
-        db.add(wallet)
-        await db.commit()
-        await db.refresh(wallet)
-        # Re-fetch to load relationships properly (though it will be empty)
-        result = await db.execute(
-            select(Wallet).options(selectinload(Wallet.balances)).where(Wallet.id == wallet.id)
-        )
-        wallet = result.scalars().first()
-
-    return wallet
+    balances = result.scalars().all()
+    return balances

@@ -6,10 +6,11 @@ from app.db.session import SessionLocal
 from app.api.endpoints.users import get_current_user
 from app.models.user import User
 from app.models.planet import Planet
-from app.models.wallet import Wallet
+from app.models.wallet import Balance
 from app.models.item import Item
 from app.models.inventory import Inventory
 from app.models.building import Building
+from decimal import Decimal
 
 # We need to make sure we use a test user
 TEST_USER_ID = 999
@@ -39,7 +40,7 @@ async def test_build_structure():
             await session.execute(delete(Building).where(Building.planet_id == TEST_PLANET_ID))
             await session.execute(delete(Inventory).where(Inventory.planet_id == TEST_PLANET_ID))
             await session.execute(delete(Planet).where(Planet.id == TEST_PLANET_ID))
-            await session.execute(delete(Wallet).where(Wallet.user_id == TEST_USER_ID))
+            await session.execute(delete(Balance).where(Balance.user_id == TEST_USER_ID))
             await session.execute(delete(User).where(User.id == TEST_USER_ID))
             # Don't delete Item if it's shared, but we can ensure it exists
 
@@ -49,8 +50,8 @@ async def test_build_structure():
             user = User(id=TEST_USER_ID, discord_id="test_builder", username="Builder")
             session.add(user)
 
-            wallet = Wallet(user_id=TEST_USER_ID, balance=500.0)
-            session.add(wallet)
+            balance = Balance(user_id=TEST_USER_ID, currency_type="CRED", amount=Decimal(500.0))
+            session.add(balance)
 
             planet = Planet(id=TEST_PLANET_ID, name="BuildWorld", x=10, y=10, owner_id=TEST_USER_ID, temperature=20, gravity=1)
             session.add(planet)
@@ -83,11 +84,11 @@ async def test_build_structure():
 
         # CHECK DB SIDE EFFECTS
         async with SessionLocal() as session:
-            # Check Wallet
-            res = await session.execute(select(Wallet).where(Wallet.user_id == TEST_USER_ID))
-            wallet = res.scalars().first()
+            # Check Balance
+            res = await session.execute(select(Balance).where(Balance.user_id == TEST_USER_ID, Balance.currency_type == "CRED"))
+            balance = res.scalars().first()
             # 500 - 100 = 400
-            assert wallet.balance == 400.0
+            assert balance.amount == Decimal(400.0)
 
             # Check Inventory
             # Iron Mine costs 10 Iron. 100 - 10 = 90
@@ -100,9 +101,9 @@ async def test_build_insufficient_funds():
      async with AsyncClient(app=app, base_url="http://test") as ac:
         # Assuming previous test setup, but let's just modify wallet
         async with SessionLocal() as session:
-            res = await session.execute(select(Wallet).where(Wallet.user_id == TEST_USER_ID))
-            wallet = res.scalars().first()
-            wallet.balance = 0 # bankrupt
+            res = await session.execute(select(Balance).where(Balance.user_id == TEST_USER_ID, Balance.currency_type == "CRED"))
+            balance = res.scalars().first()
+            balance.amount = 0 # bankrupt
             await session.commit()
 
         payload = {"type": "IRON_MINE"}

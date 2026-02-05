@@ -80,29 +80,18 @@ CREATE TABLE inventories (
 CREATE INDEX ix_inventories_id ON inventories (id);
 
 -- Wallets Table
-CREATE TABLE wallets (
+-- Balances Table
+CREATE TABLE balances (
     id INTEGER NOT NULL AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
-    updated_at DATETIME,
+    currency_type VARCHAR(10) NOT NULL, -- CRED, IND, TECH, MIL, VOID
+    amount DECIMAL(26, 0) DEFAULT 0,
     PRIMARY KEY (id),
     FOREIGN KEY(user_id) REFERENCES users (id),
-    UNIQUE (user_id)
+    UNIQUE (user_id, currency_type)
 );
 
-CREATE INDEX ix_wallets_id ON wallets (id);
-
--- Wallet Balances Table
-CREATE TABLE wallet_balances (
-    id INTEGER NOT NULL AUTO_INCREMENT,
-    wallet_id INTEGER NOT NULL,
-    currency_type VARCHAR(10) NOT NULL, -- CRED, IND, TECH, MIL, VOID
-    amount FLOAT DEFAULT 0.0,
-    PRIMARY KEY (id),
-    FOREIGN KEY(wallet_id) REFERENCES wallets (id),
-    UNIQUE (wallet_id, currency_type)
-);
-
-CREATE INDEX ix_wallet_balances_wallet ON wallet_balances (wallet_id);
+CREATE INDEX ix_balances_user ON balances (user_id);
 
 -- Buildings Table
 CREATE TABLE buildings (

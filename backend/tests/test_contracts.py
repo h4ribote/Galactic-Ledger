@@ -5,7 +5,7 @@ from app.main import app
 from app.api import deps
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.models.wallet import Wallet
+from app.models.wallet import Balance
 from app.models.planet import Planet
 from app.models.item import Item
 from app.models.inventory import Inventory
@@ -13,6 +13,7 @@ from app.models.fleet import Fleet
 from sqlalchemy import select
 from app.services.galaxy import initialize_galaxy
 import random
+from decimal import Decimal
 
 API_PREFIX = "/api/v1"
 
@@ -62,10 +63,12 @@ async def test_contract_flow(setup_db):
         issuer_id = issuer.id
         contractor_id = contractor.id
 
-        # Create Wallets
-        w1 = Wallet(user_id=issuer_id, balance=10000.0)
-        w2 = Wallet(user_id=contractor_id, balance=5000.0)
-        session.add_all([w1, w2])
+        # Create Balances
+        # Issuer has 10000 CRED
+        b1 = Balance(user_id=issuer_id, currency_type="CRED", amount=Decimal(10000.0))
+        # Contractor has 5000 CRED
+        b2 = Balance(user_id=contractor_id, currency_type="CRED", amount=Decimal(5000.0))
+        session.add_all([b1, b2])
 
         # Create Item
         item = Item(name=f"Test Cargo {suffix}", tier=1, volume=1.0)
@@ -105,6 +108,7 @@ async def test_contract_flow(setup_db):
             "destination_planet_id": dest_id,
             "item_id": item_id,
             "quantity": 50,
+            "currency_type": "CRED", # Explicitly set currency type
             "reward_amount": 1000.0,
             "collateral_amount": 2000.0,
             "duration_seconds": 3600
@@ -157,9 +161,9 @@ async def test_contract_flow(setup_db):
         assert inv is not None
         assert inv.quantity >= 50
 
-        # Check Contractor Wallet (Initial 5000 - 2000 Collat + 1000 Reward + 2000 Collat Return = 6000)
-        w = await session.scalar(select(Wallet).where(Wallet.user_id == contractor_id))
-        assert w.balance == 6000.0
+        # Check Contractor Balance (Initial 5000 - 2000 Collat + 1000 Reward + 2000 Collat Return = 6000)
+        b = await session.scalar(select(Balance).where(Balance.user_id == contractor_id, Balance.currency_type == "CRED"))
+        assert b.amount == Decimal(6000.0)
 
     # Cleanup overrides
     app.dependency_overrides = {}

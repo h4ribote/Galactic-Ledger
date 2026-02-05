@@ -1,32 +1,16 @@
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
+from decimal import Decimal
 
-class WalletBalanceBase(BaseModel):
+class BalanceBase(BaseModel):
     currency_type: str
-    amount: float
+    amount: Decimal
 
-class WalletBalance(WalletBalanceBase):
-    id: int
-    wallet_id: int
-
-    class Config:
-        from_attributes = True
-
-class WalletBase(BaseModel):
-    pass # balances are in relationships
-
-class WalletCreate(WalletBase):
+class BalanceCreate(BalanceBase):
     user_id: int
 
-class WalletUpdate(BaseModel):
-    pass
-
-class Wallet(WalletBase):
+class Balance(BalanceBase):
     id: int
     user_id: int
-    updated_at: Optional[datetime] = None
-    balances: List[WalletBalance] = []
 
     class Config:
         from_attributes = True
