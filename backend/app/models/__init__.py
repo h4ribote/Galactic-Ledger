@@ -5,3 +5,5 @@ from app.models.item import Item
 from app.models.inventory import Inventory
 from app.models.wallet import Wallet
 from app.models.building import Building
+from app.models.fleet import Fleet
+from app.models.contract import Contract

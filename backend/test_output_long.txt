@@ -1,0 +1,2080 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-9.0.2, pluggy-1.6.0 -- /home/jules/.pyenv/versions/3.12.12/bin/python3.12
+cachedir: .pytest_cache
+rootdir: /app/backend
+plugins: asyncio-1.3.0, anyio-4.12.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+tests/test_contracts.py::test_contract_flow FAILED                       [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_contract_flow ______________________________
+
+setup_db = None
+
+    @pytest.mark.asyncio
+    async def test_contract_flow(setup_db):
+        # Setup Data
+        async with SessionLocal() as session:
+            await initialize_galaxy(session, planet_count=10)
+
+            # Create Unique Users
+            suffix = random.randint(1000, 9999)
+            issuer = User(discord_id=f"issuer_{suffix}", username="issuer")
+            contractor = User(discord_id=f"contractor_{suffix}", username="contractor")
+            session.add_all([issuer, contractor])
+            await session.commit()
+            await session.refresh(issuer)
+            await session.refresh(contractor)
+
+            # Create Wallets
+            w1 = Wallet(user_id=issuer.id, balance=10000.0)
+            w2 = Wallet(user_id=contractor.id, balance=5000.0)
+            session.add_all([w1, w2])
+
+            # Create Item
+            item = Item(name=f"Test Cargo {suffix}", tier=1, volume=1.0)
+            session.add(item)
+            await session.commit()
+            await session.refresh(item)
+
+            # Get Planets
+            planets_res = await session.execute(select(Planet).limit(2))
+            planets = planets_res.scalars().all()
+            origin = planets[0]
+            destination = planets[1]
+
+            # Create Inventory for Issuer at Origin
+            inv = Inventory(planet_id=origin.id, item_id=item.id, quantity=100)
+            session.add(inv)
+
+            # Create Fleet for Contractor at Origin
+>           fleet = Fleet(owner_id=contractor.id, name="Hauler 1", location_planet_id=origin.id, cargo_capacity=500.0)
+                                   ^^^^^^^^^^^^^
+
+tests/test_contracts.py:81:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7ff52c0acfe0>
+instance = <app.models.user.User object at 0x7ff52be3bd10>
+owner = <class 'app.models.user.User'>
+
+    def __get__(
+        self, instance: Optional[object], owner: Any
+    ) -> Union[InstrumentedAttribute[_T], _T]:
+        if instance is None:
+            return self
+
+        dict_ = instance_dict(instance)
+        if self.impl.supports_population and self.key in dict_:
+            return dict_[self.key]  # type: ignore[no-any-return]
+        else:
+            try:
+                state = instance_state(instance)
+            except AttributeError as err:
+                raise orm_exc.UnmappedInstanceError(instance) from err
+>           return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/attributes.py:566:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.attributes.ScalarAttributeImpl object at 0x7ff52be2fb00>
+state = <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>
+dict_ = {'_sa_instance_state': <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>}
+passive = symbol('PASSIVE_OFF')
+
+    def get(
+        self,
+        state: InstanceState[Any],
+        dict_: _InstanceDict,
+        passive: PassiveFlag = PASSIVE_OFF,
+    ) -> Any:
+        """Retrieve a value from the given object.
+        If a callable is assembled on this object's attribute, and
+        passive is False, the callable will be executed and the
+        resulting value will be set as the new value for this attribute.
+        """
+        if self.key in dict_:
+            return dict_[self.key]
+        else:
+            # if history present, don't load
+            key = self.key
+            if (
+                key not in state.committed_state
+                or state.committed_state[key] is NO_VALUE
+            ):
+                if not passive & CALLABLES_OK:
+                    return PASSIVE_NO_RESULT
+
+>               value = self._fire_loader_callables(state, key, passive)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/attributes.py:1086:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.attributes.ScalarAttributeImpl object at 0x7ff52be2fb00>
+state = <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>
+key = 'id', passive = symbol('PASSIVE_OFF')
+
+    def _fire_loader_callables(
+        self, state: InstanceState[Any], key: str, passive: PassiveFlag
+    ) -> Any:
+        if (
+            self.accepts_scalar_loader
+            and self.load_on_unexpire
+            and key in state.expired_attributes
+        ):
+>           return state._load_expired(state, passive)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/attributes.py:1116:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>
+state = <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>
+passive = symbol('PASSIVE_OFF')
+
+    def _load_expired(
+        self, state: InstanceState[_O], passive: PassiveFlag
+    ) -> LoaderCallableStatus:
+        """__call__ allows the InstanceState to act as a deferred
+        callable for loading expired attributes, which is also
+        serializable (picklable).
+
+        """
+
+        if not passive & SQL_OK:
+            return PASSIVE_NO_RESULT
+
+        toload = self.expired_attributes.intersection(self.unmodified)
+        toload = toload.difference(
+            attr
+            for attr in toload
+            if not self.manager[attr].impl.load_on_unexpire
+        )
+
+>       self.manager.expired_attribute_loader(self, toload, passive)
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/state.py:798:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+mapper = <Mapper at 0x7ff52ce9e840; User>
+state = <sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>
+attribute_names = {'accepted_contracts', 'avatar_url', 'created_at', 'discord_id', 'fleets', 'id', ...}
+passive = symbol('PASSIVE_OFF')
+
+    def load_scalar_attributes(mapper, state, attribute_names, passive):
+        """initiate a column-based attribute refresh operation."""
+
+        # assert mapper is _state_mapper(state)
+        session = state.session
+        if not session:
+            raise orm_exc.DetachedInstanceError(
+                "Instance %s is not bound to a Session; "
+                "attribute refresh operation cannot proceed" % (state_str(state))
+            )
+
+        no_autoflush = bool(passive & attributes.NO_AUTOFLUSH)
+
+        # in the case of inheritance, particularly concrete and abstract
+        # concrete inheritance, the class manager might have some keys
+        # of attributes on the superclass that we didn't actually map.
+        # These could be mapped as "concrete, don't load" or could be completely
+        # excluded from the mapping and we know nothing about them.  Filter them
+        # here to prevent them from coming through.
+        if attribute_names:
+            attribute_names = attribute_names.intersection(mapper.attrs.keys())
+
+        if mapper.inherits and not mapper.concrete:
+            # load based on committed attributes in the object, formed into
+            # a truncated SELECT that only includes relevant tables.  does not
+            # currently use state.key
+            statement = mapper._optimized_get_statement(state, attribute_names)
+            if statement is not None:
+                # undefer() isn't needed here because statement has the
+                # columns needed already, this implicitly undefers that column
+                stmt = FromStatement(mapper, statement)
+
+                return load_on_ident(
+                    session,
+                    stmt,
+                    None,
+                    only_load_props=attribute_names,
+                    refresh_state=state,
+                    no_autoflush=no_autoflush,
+                )
+
+        # normal load, use state.key as the identity to SELECT
+        has_key = bool(state.key)
+
+        if has_key:
+            identity_key = state.key
+        else:
+            # this codepath is rare - only valid when inside a flush, and the
+            # object is becoming persistent but hasn't yet been assigned
+            # an identity_key.
+            # check here to ensure we have the attrs we need.
+            pk_attrs = [
+                mapper._columntoproperty[col].key for col in mapper.primary_key
+            ]
+            if state.expired_attributes.intersection(pk_attrs):
+                raise sa_exc.InvalidRequestError(
+                    "Instance %s cannot be refreshed - it's not "
+                    " persistent and does not "
+                    "contain a full primary key." % state_str(state)
+                )
+            identity_key = mapper._identity_key_from_state(state)
+
+        if (
+            _none_set.issubset(identity_key) and not mapper.allow_partial_pks
+        ) or _none_set.issuperset(identity_key):
+            util.warn_limited(
+                "Instance %s to be refreshed doesn't "
+                "contain a full primary key - can't be refreshed "
+                "(and shouldn't be expired, either).",
+                state_str(state),
+            )
+            return
+
+>       result = load_on_ident(
+            session,
+            select(mapper).set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL),
+            identity_key,
+            refresh_state=state,
+            only_load_props=attribute_names,
+            no_autoflush=no_autoflush,
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/loading.py:1651:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+session = <sqlalchemy.orm.session.Session object at 0x7ff52be16c30>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd38e30>
+key = (<class 'app.models.user.User'>, (2,), None)
+
+    def load_on_ident(
+        session: Session,
+        statement: Union[Select, FromStatement],
+        key: Optional[_IdentityKeyType],
+        *,
+        load_options: Optional[Sequence[ORMOption]] = None,
+        refresh_state: Optional[InstanceState[Any]] = None,
+        with_for_update: Optional[ForUpdateArg] = None,
+        only_load_props: Optional[Iterable[str]] = None,
+        no_autoflush: bool = False,
+        bind_arguments: Mapping[str, Any] = util.EMPTY_DICT,
+        execution_options: _ExecuteOptions = util.EMPTY_DICT,
+        require_pk_cols: bool = False,
+        is_user_refresh: bool = False,
+    ):
+        """Load the given identity key from the database."""
+        if key is not None:
+            ident = key[1]
+            identity_token = key[2]
+        else:
+            ident = identity_token = None
+
+>       return load_on_pk_identity(
+            session,
+            statement,
+            ident,
+            load_options=load_options,
+            refresh_state=refresh_state,
+            with_for_update=with_for_update,
+            only_load_props=only_load_props,
+            identity_token=identity_token,
+            no_autoflush=no_autoflush,
+            bind_arguments=bind_arguments,
+            execution_options=execution_options,
+            require_pk_cols=require_pk_cols,
+            is_user_refresh=is_user_refresh,
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/loading.py:507:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+session = <sqlalchemy.orm.session.Session object at 0x7ff52be16c30>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd38e30>
+primary_key_identity = (2,)
+
+    def load_on_pk_identity(
+        session: Session,
+        statement: Union[Select, FromStatement],
+        primary_key_identity: Optional[Tuple[Any, ...]],
+        *,
+        load_options: Optional[Sequence[ORMOption]] = None,
+        refresh_state: Optional[InstanceState[Any]] = None,
+        with_for_update: Optional[ForUpdateArg] = None,
+        only_load_props: Optional[Iterable[str]] = None,
+        identity_token: Optional[Any] = None,
+        no_autoflush: bool = False,
+        bind_arguments: Mapping[str, Any] = util.EMPTY_DICT,
+        execution_options: _ExecuteOptions = util.EMPTY_DICT,
+        require_pk_cols: bool = False,
+        is_user_refresh: bool = False,
+    ):
+        """Load the given primary key identity from the database."""
+
+        query = statement
+        q = query._clone()
+
+        assert not q._is_lambda_element
+
+        if load_options is None:
+            load_options = QueryContext.default_load_options
+
+        if (
+            statement._compile_options
+            is SelectState.default_select_compile_options
+        ):
+            compile_options = ORMCompileState.default_compile_options
+        else:
+            compile_options = statement._compile_options
+
+        if primary_key_identity is not None:
+            mapper = query._propagate_attrs["plugin_subject"]
+
+            (_get_clause, _get_params) = mapper._get_clause
+
+            # None present in ident - turn those comparisons
+            # into "IS NULL"
+            if None in primary_key_identity:
+                nones = {
+                    _get_params[col].key
+                    for col, value in zip(mapper.primary_key, primary_key_identity)
+                    if value is None
+                }
+
+                _get_clause = sql_util.adapt_criterion_to_null(_get_clause, nones)
+
+                if len(nones) == len(primary_key_identity):
+                    util.warn(
+                        "fully NULL primary key identity cannot load any "
+                        "object.  This condition may raise an error in a future "
+                        "release."
+                    )
+
+            q._where_criteria = (
+                sql_util._deep_annotate(_get_clause, {"_orm_adapt": True}),
+            )
+
+            params = {
+                _get_params[primary_key].key: id_val
+                for id_val, primary_key in zip(
+                    primary_key_identity, mapper.primary_key
+                )
+            }
+        else:
+            params = None
+
+        if with_for_update is not None:
+            version_check = True
+            q._for_update_arg = with_for_update
+        elif query._for_update_arg is not None:
+            version_check = True
+            q._for_update_arg = query._for_update_arg
+        else:
+            version_check = False
+
+        if require_pk_cols and only_load_props:
+            if not refresh_state:
+                raise sa_exc.ArgumentError(
+                    "refresh_state is required when require_pk_cols is present"
+                )
+
+            refresh_state_prokeys = refresh_state.mapper._primary_key_propkeys
+            has_changes = {
+                key
+                for key in refresh_state_prokeys.difference(only_load_props)
+                if refresh_state.attrs[key].history.has_changes()
+            }
+            if has_changes:
+                # raise if pending pk changes are present.
+                # technically, this could be limited to the case where we have
+                # relationships in the only_load_props collection to be refreshed
+                # also (and only ones that have a secondary eager loader, at that).
+                # however, the error is in place across the board so that behavior
+                # here is easier to predict.   The use case it prevents is one
+                # of mutating PK attrs, leaving them unflushed,
+                # calling session.refresh(), and expecting those attrs to remain
+                # still unflushed.   It seems likely someone doing all those
+                # things would be better off having the PK attributes flushed
+                # to the database before tinkering like that (session.refresh() is
+                # tinkering).
+                raise sa_exc.InvalidRequestError(
+                    f"Please flush pending primary key changes on "
+                    "attributes "
+                    f"{has_changes} for mapper {refresh_state.mapper} before "
+                    "proceeding with a refresh"
+                )
+
+            # overall, the ORM has no internal flow right now for "dont load the
+            # primary row of an object at all, but fire off
+            # selectinload/subqueryload/immediateload for some relationships".
+            # It would probably be a pretty big effort to add such a flow.  So
+            # here, the case for #8703 is introduced; user asks to refresh some
+            # relationship attributes only which are
+            # selectinload/subqueryload/immediateload/ etc. (not joinedload).
+            # ORM complains there's no columns in the primary row to load.
+            # So here, we just add the PK cols if that
+            # case is detected, so that there is a SELECT emitted for the primary
+            # row.
+            #
+            # Let's just state right up front, for this one little case,
+            # the ORM here is adding a whole extra SELECT just to satisfy
+            # limitations in the internal flow.  This is really not a thing
+            # SQLAlchemy finds itself doing like, ever, obviously, we are
+            # constantly working to *remove* SELECTs we don't need.   We
+            # rationalize this for now based on 1. session.refresh() is not
+            # commonly used 2. session.refresh() with only relationship attrs is
+            # even less commonly used 3. the SELECT in question is very low
+            # latency.
+            #
+            # to add the flow to not include the SELECT, the quickest way
+            # might be to just manufacture a single-row result set to send off to
+            # instances(), but we'd have to weave that into context.py and all
+            # that.  For 2.0.0, we have enough big changes to navigate for now.
+            #
+            mp = refresh_state.mapper._props
+            for p in only_load_props:
+                if mp[p]._is_relationship:
+                    only_load_props = refresh_state_prokeys.union(only_load_props)
+                    break
+
+        if refresh_state and refresh_state.load_options:
+            compile_options += {"_current_path": refresh_state.load_path.parent}
+            q = q.options(*refresh_state.load_options)
+
+        new_compile_options, load_options = _set_get_options(
+            compile_options,
+            load_options,
+            version_check=version_check,
+            only_load_props=only_load_props,
+            refresh_state=refresh_state,
+            identity_token=identity_token,
+            is_user_refresh=is_user_refresh,
+        )
+
+        q._compile_options = new_compile_options
+        q._order_by = None
+
+        if no_autoflush:
+            load_options += {"_autoflush": False}
+
+        execution_options = util.EMPTY_DICT.merge_with(
+            execution_options, {"_sa_orm_load_options": load_options}
+        )
+        result = (
+>           session.execute(
+                q,
+                params=params,
+                execution_options=execution_options,
+                bind_arguments=bind_arguments,
+            )
+            .unique()
+            .scalars()
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/loading.py:692:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.session.Session object at 0x7ff52be16c30>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+params = {'pk_1': 2}
+
+    def execute(
+        self,
+        statement: Executable,
+        params: Optional[_CoreAnyExecuteParams] = None,
+        *,
+        execution_options: OrmExecuteOptionsParameter = util.EMPTY_DICT,
+        bind_arguments: Optional[_BindArguments] = None,
+        _parent_execute_state: Optional[Any] = None,
+        _add_event: Optional[Any] = None,
+    ) -> Result[Any]:
+        r"""Execute a SQL expression construct.
+
+        Returns a :class:`_engine.Result` object representing
+        results of the statement execution.
+
+        E.g.::
+
+            from sqlalchemy import select
+            result = session.execute(
+                select(User).where(User.id == 5)
+            )
+
+        The API contract of :meth:`_orm.Session.execute` is similar to that
+        of :meth:`_engine.Connection.execute`, the :term:`2.0 style` version
+        of :class:`_engine.Connection`.
+
+        .. versionchanged:: 1.4 the :meth:`_orm.Session.execute` method is
+           now the primary point of ORM statement execution when using
+           :term:`2.0 style` ORM usage.
+
+        :param statement:
+            An executable statement (i.e. an :class:`.Executable` expression
+            such as :func:`_expression.select`).
+
+        :param params:
+            Optional dictionary, or list of dictionaries, containing
+            bound parameter values.   If a single dictionary, single-row
+            execution occurs; if a list of dictionaries, an
+            "executemany" will be invoked.  The keys in each dictionary
+            must correspond to parameter names present in the statement.
+
+        :param execution_options: optional dictionary of execution options,
+         which will be associated with the statement execution.  This
+         dictionary can provide a subset of the options that are accepted
+         by :meth:`_engine.Connection.execution_options`, and may also
+         provide additional options understood only in an ORM context.
+
+         .. seealso::
+
+            :ref:`orm_queryguide_execution_options` - ORM-specific execution
+            options
+
+        :param bind_arguments: dictionary of additional arguments to determine
+         the bind.  May include "mapper", "bind", or other custom arguments.
+         Contents of this dictionary are passed to the
+         :meth:`.Session.get_bind` method.
+
+        :return: a :class:`_engine.Result` object.
+
+
+        """
+>       return self._execute_internal(
+            statement,
+            params,
+            execution_options=execution_options,
+            bind_arguments=bind_arguments,
+            _parent_execute_state=_parent_execute_state,
+            _add_event=_add_event,
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2308:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.orm.session.Session object at 0x7ff52be16c30>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+params = {'pk_1': 2}
+
+    def _execute_internal(
+        self,
+        statement: Executable,
+        params: Optional[_CoreAnyExecuteParams] = None,
+        *,
+        execution_options: OrmExecuteOptionsParameter = util.EMPTY_DICT,
+        bind_arguments: Optional[_BindArguments] = None,
+        _parent_execute_state: Optional[Any] = None,
+        _add_event: Optional[Any] = None,
+        _scalar_result: bool = False,
+    ) -> Any:
+        statement = coercions.expect(roles.StatementRole, statement)
+
+        if not bind_arguments:
+            bind_arguments = {}
+        else:
+            bind_arguments = dict(bind_arguments)
+
+        if (
+            statement._propagate_attrs.get("compile_state_plugin", None)
+            == "orm"
+        ):
+            compile_state_cls = CompileState._get_plugin_class_for_plugin(
+                statement, "orm"
+            )
+            if TYPE_CHECKING:
+                assert isinstance(
+                    compile_state_cls, context.AbstractORMCompileState
+                )
+        else:
+            compile_state_cls = None
+            bind_arguments.setdefault("clause", statement)
+
+        execution_options = util.coerce_to_immutabledict(execution_options)
+
+        if _parent_execute_state:
+            events_todo = _parent_execute_state._remaining_events()
+        else:
+            events_todo = self.dispatch.do_orm_execute
+            if _add_event:
+                events_todo = list(events_todo) + [_add_event]
+
+        if events_todo:
+            if compile_state_cls is not None:
+                # for event handlers, do the orm_pre_session_exec
+                # pass ahead of the event handlers, so that things like
+                # .load_options, .update_delete_options etc. are populated.
+                # is_pre_event=True allows the hook to hold off on things
+                # it doesn't want to do twice, including autoflush as well
+                # as "pre fetch" for DML, etc.
+                (
+                    statement,
+                    execution_options,
+                ) = compile_state_cls.orm_pre_session_exec(
+                    self,
+                    statement,
+                    params,
+                    execution_options,
+                    bind_arguments,
+                    True,
+                )
+
+            orm_exec_state = ORMExecuteState(
+                self,
+                statement,
+                params,
+                execution_options,
+                bind_arguments,
+                compile_state_cls,
+                events_todo,
+            )
+            for idx, fn in enumerate(events_todo):
+                orm_exec_state._starting_event_idx = idx
+                fn_result: Optional[Result[Any]] = fn(orm_exec_state)
+                if fn_result:
+                    if _scalar_result:
+                        return fn_result.scalar()
+                    else:
+                        return fn_result
+
+            statement = orm_exec_state.statement
+            execution_options = orm_exec_state.local_execution_options
+
+        if compile_state_cls is not None:
+            # now run orm_pre_session_exec() "for real".   if there were
+            # event hooks, this will re-run the steps that interpret
+            # new execution_options into load_options / update_delete_options,
+            # which we assume the event hook might have updated.
+            # autoflush will also be invoked in this step if enabled.
+            (
+                statement,
+                execution_options,
+            ) = compile_state_cls.orm_pre_session_exec(
+                self,
+                statement,
+                params,
+                execution_options,
+                bind_arguments,
+                False,
+            )
+
+        bind = self.get_bind(**bind_arguments)
+
+        conn = self._connection_for_bind(bind)
+
+        if _scalar_result and not compile_state_cls:
+            if TYPE_CHECKING:
+                params = cast(_CoreSingleExecuteParams, params)
+            return conn.scalar(
+                statement, params or {}, execution_options=execution_options
+            )
+
+        if compile_state_cls:
+>           result: Result[Any] = compile_state_cls.orm_execute_statement(
+                self,
+                statement,
+                params or {},
+                execution_options,
+                bind_arguments,
+                conn,
+            )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2190:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = <class 'sqlalchemy.orm.context.ORMSelectCompileState'>
+session = <sqlalchemy.orm.session.Session object at 0x7ff52be16c30>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+params = {'pk_1': 2}
+execution_options = immutabledict({'_sa_orm_load_options': default_load_options(_refresh_state=<sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>), '_result_disable_adapt_to_context': True})
+bind_arguments = {'clause': <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>, 'mapper': <Mapper at 0x7ff52ce9e840; User>}
+conn = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+
+    @classmethod
+    def orm_execute_statement(
+        cls,
+        session,
+        statement,
+        params,
+        execution_options,
+        bind_arguments,
+        conn,
+    ) -> Result:
+>       result = conn.execute(
+            statement, params or {}, execution_options=execution_options
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/orm/context.py:293:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+statement = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+parameters = {'pk_1': 2}
+
+    def execute(
+        self,
+        statement: Executable,
+        parameters: Optional[_CoreAnyExecuteParams] = None,
+        *,
+        execution_options: Optional[CoreExecuteOptionsParameter] = None,
+    ) -> CursorResult[Any]:
+        r"""Executes a SQL statement construct and returns a
+        :class:`_engine.CursorResult`.
+
+        :param statement: The statement to be executed.  This is always
+         an object that is in both the :class:`_expression.ClauseElement` and
+         :class:`_expression.Executable` hierarchies, including:
+
+         * :class:`_expression.Select`
+         * :class:`_expression.Insert`, :class:`_expression.Update`,
+           :class:`_expression.Delete`
+         * :class:`_expression.TextClause` and
+           :class:`_expression.TextualSelect`
+         * :class:`_schema.DDL` and objects which inherit from
+           :class:`_schema.ExecutableDDLElement`
+
+        :param parameters: parameters which will be bound into the statement.
+         This may be either a dictionary of parameter names to values,
+         or a mutable sequence (e.g. a list) of dictionaries.  When a
+         list of dictionaries is passed, the underlying statement execution
+         will make use of the DBAPI ``cursor.executemany()`` method.
+         When a single dictionary is passed, the DBAPI ``cursor.execute()``
+         method will be used.
+
+        :param execution_options: optional dictionary of execution options,
+         which will be associated with the statement execution.  This
+         dictionary can provide a subset of the options that are accepted
+         by :meth:`_engine.Connection.execution_options`.
+
+        :return: a :class:`_engine.Result` object.
+
+        """
+        distilled_parameters = _distill_params_20(parameters)
+        try:
+            meth = statement._execute_on_connection
+        except AttributeError as err:
+            raise exc.ObjectNotExecutableError(statement) from err
+        else:
+>           return meth(
+                self,
+                distilled_parameters,
+                execution_options or NO_OPTIONS,
+            )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1416:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+connection = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+distilled_params = [{'pk_1': 2}]
+execution_options = immutabledict({'_sa_orm_load_options': default_load_options(_refresh_state=<sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>), '_result_disable_adapt_to_context': True})
+
+    def _execute_on_connection(
+        self,
+        connection: Connection,
+        distilled_params: _CoreMultiExecuteParams,
+        execution_options: CoreExecuteOptionsParameter,
+    ) -> Result[Any]:
+        if self.supports_execution:
+            if TYPE_CHECKING:
+                assert isinstance(self, Executable)
+>           return connection._execute_clauseelement(
+                self, distilled_params, execution_options
+            )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:517:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+elem = <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>
+distilled_parameters = [{'pk_1': 2}]
+execution_options = immutabledict({'_sa_orm_load_options': default_load_options(_refresh_state=<sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>), '_result_disable_adapt_to_context': True})
+
+    def _execute_clauseelement(
+        self,
+        elem: Executable,
+        distilled_parameters: _CoreMultiExecuteParams,
+        execution_options: CoreExecuteOptionsParameter,
+    ) -> CursorResult[Any]:
+        """Execute a sql.ClauseElement object."""
+
+        execution_options = elem._execution_options.merge_with(
+            self._execution_options, execution_options
+        )
+
+        has_events = self._has_events or self.engine._has_events
+        if has_events:
+            (
+                elem,
+                distilled_parameters,
+                event_multiparams,
+                event_params,
+            ) = self._invoke_before_exec_event(
+                elem, distilled_parameters, execution_options
+            )
+
+        if distilled_parameters:
+            # ensure we don't retain a link to the view object for keys()
+            # which links to the values, which we don't want to cache
+            keys = sorted(distilled_parameters[0])
+            for_executemany = len(distilled_parameters) > 1
+        else:
+            keys = []
+            for_executemany = False
+
+        dialect = self.dialect
+
+        schema_translate_map = execution_options.get(
+            "schema_translate_map", None
+        )
+
+        compiled_cache: Optional[CompiledCacheType] = execution_options.get(
+            "compiled_cache", self.engine._compiled_cache
+        )
+
+        compiled_sql, extracted_params, cache_hit = elem._compile_w_cache(
+            dialect=dialect,
+            compiled_cache=compiled_cache,
+            column_keys=keys,
+            for_executemany=for_executemany,
+            schema_translate_map=schema_translate_map,
+            linting=self.dialect.compiler_linting | compiler.WARN_LINTING,
+        )
+>       ret = self._execute_context(
+            dialect,
+            dialect.execution_ctx_cls._init_compiled,
+            compiled_sql,
+            distilled_parameters,
+            execution_options,
+            compiled_sql,
+            distilled_parameters,
+            elem,
+            extracted_params,
+            cache_hit=cache_hit,
+        )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1639:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+dialect = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteDialect_aiosqlite object at 0x7ff52ce12f00>
+constructor = <bound method DefaultExecutionContext._init_compiled of <class 'sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite'>>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x7ff52bd38e90>
+parameters = [{'pk_1': 2}]
+execution_options = immutabledict({'_sa_orm_load_options': default_load_options(_refresh_state=<sqlalchemy.orm.state.InstanceState object at 0x7ff52bfe7b30>), '_result_disable_adapt_to_context': True})
+args = (<sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x7ff52bd38e90>, [{'pk_1': 2}], <sqlalchemy.sql.selectable.Select object at 0x7ff52bd393d0>, [AnnotatedBindParameter('pk_1', None, type_=Integer())])
+kw = {'cache_hit': <CacheStats.CACHE_MISS: 1>}, yp = None
+conn = <sqlalchemy.pool.base._ConnectionFairy object at 0x7ff52c0399d0>
+context = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite object at 0x7ff52bd39490>
+
+    def _execute_context(
+        self,
+        dialect: Dialect,
+        constructor: Callable[..., ExecutionContext],
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+        execution_options: _ExecuteOptions,
+        *args: Any,
+        **kw: Any,
+    ) -> CursorResult[Any]:
+        """Create an :class:`.ExecutionContext` and execute, returning
+        a :class:`_engine.CursorResult`."""
+
+        if execution_options:
+            yp = execution_options.get("yield_per", None)
+            if yp:
+                execution_options = execution_options.union(
+                    {"stream_results": True, "max_row_buffer": yp}
+                )
+        try:
+            conn = self._dbapi_connection
+            if conn is None:
+                conn = self._revalidate_connection()
+
+            context = constructor(
+                dialect, self, conn, execution_options, *args, **kw
+            )
+        except (exc.PendingRollbackError, exc.ResourceClosedError):
+            raise
+        except BaseException as e:
+            self._handle_dbapi_exception(
+                e, str(statement), parameters, None, None
+            )
+
+        if (
+            self._transaction
+            and not self._transaction.is_active
+            or (
+                self._nested_transaction
+                and not self._nested_transaction.is_active
+            )
+        ):
+            self._invalid_transaction()
+
+        elif self._trans_context_manager:
+            TransactionalContext._trans_ctx_check(self)
+
+        if self._transaction is None:
+            self._autobegin()
+
+        context.pre_exec()
+
+        if context.execute_style is ExecuteStyle.INSERTMANYVALUES:
+            return self._exec_insertmany_context(
+                dialect,
+                context,
+            )
+        else:
+>           return self._exec_single_context(
+                dialect, context, statement, parameters
+            )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+dialect = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteDialect_aiosqlite object at 0x7ff52ce12f00>
+context = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite object at 0x7ff52bd39490>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x7ff52bd38e90>
+parameters = [(2,)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+
+        effective_parameters: Optional[_AnyExecuteParams]
+
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+
+        if self._echo:
+            self._log_info(str_statement)
+
+            stats = context._get_cache_stats()
+
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+            if self._has_events or self.engine._has_events:
+                self.dispatch.after_cursor_execute(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+
+            context.post_exec()
+
+            result = context._setup_result_proxy()
+
+        except BaseException as e:
+>           self._handle_dbapi_exception(
+                e, str_statement, effective_parameters, cursor, context
+            )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+e = MissingGreenlet("greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place?")
+statement = 'SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url...atar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = ?'
+parameters = (2,)
+cursor = <sqlalchemy.dialects.sqlite.aiosqlite.AsyncAdapt_aiosqlite_cursor object at 0x7ff52bcfa140>
+context = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite object at 0x7ff52bd39490>
+is_sub_exec = False
+
+    def _handle_dbapi_exception(
+        self,
+        e: BaseException,
+        statement: Optional[str],
+        parameters: Optional[_AnyExecuteParams],
+        cursor: Optional[DBAPICursor],
+        context: Optional[ExecutionContext],
+        is_sub_exec: bool = False,
+    ) -> NoReturn:
+        exc_info = sys.exc_info()
+
+        is_exit_exception = util.is_exit_exception(e)
+
+        if not self._is_disconnect:
+            self._is_disconnect = (
+                isinstance(e, self.dialect.loaded_dbapi.Error)
+                and not self.closed
+                and self.dialect.is_disconnect(
+                    e,
+                    self._dbapi_connection if not self.invalidated else None,
+                    cursor,
+                )
+            ) or (is_exit_exception and not self.closed)
+
+        invalidate_pool_on_disconnect = not is_exit_exception
+
+        ismulti: bool = (
+            not is_sub_exec and context.executemany
+            if context is not None
+            else False
+        )
+        if self._reentrant_error:
+            raise exc.DBAPIError.instance(
+                statement,
+                parameters,
+                e,
+                self.dialect.loaded_dbapi.Error,
+                hide_parameters=self.engine.hide_parameters,
+                dialect=self.dialect,
+                ismulti=ismulti,
+            ).with_traceback(exc_info[2]) from e
+        self._reentrant_error = True
+        try:
+            # non-DBAPI error - if we already got a context,
+            # or there's no string statement, don't wrap it
+            should_wrap = isinstance(e, self.dialect.loaded_dbapi.Error) or (
+                statement is not None
+                and context is None
+                and not is_exit_exception
+            )
+
+            if should_wrap:
+                sqlalchemy_exception = exc.DBAPIError.instance(
+                    statement,
+                    parameters,
+                    cast(Exception, e),
+                    self.dialect.loaded_dbapi.Error,
+                    hide_parameters=self.engine.hide_parameters,
+                    connection_invalidated=self._is_disconnect,
+                    dialect=self.dialect,
+                    ismulti=ismulti,
+                )
+            else:
+                sqlalchemy_exception = None
+
+            newraise = None
+
+            if (self.dialect._has_events) and not self._execution_options.get(
+                "skip_user_error_events", False
+            ):
+                ctx = ExceptionContextImpl(
+                    e,
+                    sqlalchemy_exception,
+                    self.engine,
+                    self.dialect,
+                    self,
+                    cursor,
+                    statement,
+                    parameters,
+                    context,
+                    self._is_disconnect,
+                    invalidate_pool_on_disconnect,
+                    False,
+                )
+
+                for fn in self.dialect.dispatch.handle_error:
+                    try:
+                        # handler returns an exception;
+                        # call next handler in a chain
+                        per_fn = fn(ctx)
+                        if per_fn is not None:
+                            ctx.chained_exception = newraise = per_fn
+                    except Exception as _raised:
+                        # handler raises an exception - stop processing
+                        newraise = _raised
+                        break
+
+                if self._is_disconnect != ctx.is_disconnect:
+                    self._is_disconnect = ctx.is_disconnect
+                    if sqlalchemy_exception:
+                        sqlalchemy_exception.connection_invalidated = (
+                            ctx.is_disconnect
+                        )
+
+                # set up potentially user-defined value for
+                # invalidate pool.
+                invalidate_pool_on_disconnect = (
+                    ctx.invalidate_pool_on_disconnect
+                )
+
+            if should_wrap and context:
+                context.handle_dbapi_exception(e)
+
+            if not self._is_disconnect:
+                if cursor:
+                    self._safe_close_cursor(cursor)
+                # "autorollback" was mostly relevant in 1.x series.
+                # It's very unlikely to reach here, as the connection
+                # does autobegin so when we are here, we are usually
+                # in an explicit / semi-explicit transaction.
+                # however we have a test which manufactures this
+                # scenario in any case using an event handler.
+                # test/engine/test_execute.py-> test_actual_autorollback
+                if not self.in_transaction():
+                    self._rollback_impl()
+
+            if newraise:
+                raise newraise.with_traceback(exc_info[2]) from e
+            elif should_wrap:
+                assert sqlalchemy_exception is not None
+                raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+            else:
+                assert exc_info[1] is not None
+>               raise exc_info[1].with_traceback(exc_info[2])
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2347:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.engine.base.Connection object at 0x7ff52be17980>
+dialect = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteDialect_aiosqlite object at 0x7ff52ce12f00>
+context = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite object at 0x7ff52bd39490>
+statement = <sqlalchemy.dialects.sqlite.base.SQLiteCompiler object at 0x7ff52bd38e90>
+parameters = [(2,)]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+
+        effective_parameters: Optional[_AnyExecuteParams]
+
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+
+        if self._echo:
+            self._log_info(str_statement)
+
+            stats = context._get_cache_stats()
+
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteDialect_aiosqlite object at 0x7ff52ce12f00>
+cursor = <sqlalchemy.dialects.sqlite.aiosqlite.AsyncAdapt_aiosqlite_cursor object at 0x7ff52bcfa140>
+statement = 'SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url...atar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = ?'
+parameters = (2,)
+context = <sqlalchemy.dialects.sqlite.aiosqlite.SQLiteExecutionContext_aiosqlite object at 0x7ff52bd39490>
+
+    def do_execute(self, cursor, statement, parameters, context=None):
+>       cursor.execute(statement, parameters)
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/engine/default.py:922:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.aiosqlite.AsyncAdapt_aiosqlite_cursor object at 0x7ff52bcfa140>
+operation = 'SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url...atar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = ?'
+parameters = (2,)
+
+    def execute(self, operation, parameters=None):
+        try:
+            _cursor = self.await_(self._connection.cursor())
+
+            if parameters is None:
+                self.await_(_cursor.execute(operation))
+            else:
+                self.await_(_cursor.execute(operation, parameters))
+
+            if _cursor.description:
+                self.description = _cursor.description
+                self.lastrowid = self.rowcount = -1
+
+                if not self.server_side:
+                    self._rows = self.await_(_cursor.fetchall())
+            else:
+                self.description = None
+                self.lastrowid = _cursor.lastrowid
+                self.rowcount = _cursor.rowcount
+
+            if not self.server_side:
+                self.await_(_cursor.close())
+            else:
+                self._cursor = _cursor
+        except Exception as error:
+>           self._adapt_connection._handle_exception(error)
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:146:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AdaptedConnection <aiosqlite.core.Connection object at 0x7ff52bd0d3a0>>
+error = MissingGreenlet("greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place?")
+
+    def _handle_exception(self, error):
+        if (
+            isinstance(error, ValueError)
+            and error.args[0] == "no active connection"
+        ):
+            raise self.dbapi.sqlite.OperationalError(
+                "no active connection"
+            ) from error
+        else:
+>           raise error
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:298:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <sqlalchemy.dialects.sqlite.aiosqlite.AsyncAdapt_aiosqlite_cursor object at 0x7ff52bcfa140>
+operation = 'SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url...atar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at \nFROM users \nWHERE users.id = ?'
+parameters = (2,)
+
+    def execute(self, operation, parameters=None):
+        try:
+>           _cursor = self.await_(self._connection.cursor())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:123:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+awaitable = <aiosqlite.context.Result object at 0x7ff52bd37e50>
+
+    def await_only(awaitable: Awaitable[_T]) -> _T:
+        """Awaits an async function in a sync method.
+
+        The sync method must be inside a :func:`greenlet_spawn` context.
+        :func:`await_only` calls cannot be nested.
+
+        :param awaitable: The coroutine to call.
+
+        """
+        # this is called in the context greenlet while running fn
+        current = getcurrent()
+        if not isinstance(current, _AsyncIoGreenlet):
+            _safe_cancel_awaitable(awaitable)
+
+>           raise exc.MissingGreenlet(
+                "greenlet_spawn has not been called; can't call await_only() "
+                "here. Was IO attempted in an unexpected place?"
+            )
+E           sqlalchemy.exc.MissingGreenlet: greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place? (Background on this error at: https://sqlalche.me/e/20/xd2s)
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/sqlalchemy/util/_concurrency_py3k.py:121: MissingGreenlet
+---------------------------- Captured stdout setup -----------------------------
+2026-02-05 09:13:13,828 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:13,828 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+2026-02-05 09:13:13,828 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,830 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("users")
+2026-02-05 09:13:13,830 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,831 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("planets")
+2026-02-05 09:13:13,831 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,832 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("planets")
+2026-02-05 09:13:13,832 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,833 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("items")
+2026-02-05 09:13:13,833 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,834 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("items")
+2026-02-05 09:13:13,834 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,834 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("inventories")
+2026-02-05 09:13:13,834 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,835 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("inventories")
+2026-02-05 09:13:13,835 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,836 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wallets")
+2026-02-05 09:13:13,836 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,837 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("wallets")
+2026-02-05 09:13:13,837 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,838 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("buildings")
+2026-02-05 09:13:13,838 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,839 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("buildings")
+2026-02-05 09:13:13,839 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,840 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("fleets")
+2026-02-05 09:13:13,840 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,840 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("fleets")
+2026-02-05 09:13:13,841 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,841 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("contracts")
+2026-02-05 09:13:13,841 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,842 INFO sqlalchemy.engine.Engine PRAGMA temp.table_info("contracts")
+2026-02-05 09:13:13,842 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:13,844 INFO sqlalchemy.engine.Engine
+CREATE TABLE users (
+	id INTEGER NOT NULL,
+	discord_id VARCHAR(50) NOT NULL,
+	username VARCHAR(100),
+	avatar_url VARCHAR(255),
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id)
+)
+
+
+2026-02-05 09:13:13,844 INFO sqlalchemy.engine.Engine [no key 0.00014s] ()
+2026-02-05 09:13:13,847 INFO sqlalchemy.engine.Engine CREATE INDEX ix_users_id ON users (id)
+2026-02-05 09:13:13,847 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:13,850 INFO sqlalchemy.engine.Engine CREATE UNIQUE INDEX ix_users_discord_id ON users (discord_id)
+2026-02-05 09:13:13,850 INFO sqlalchemy.engine.Engine [no key 0.00016s] ()
+2026-02-05 09:13:13,853 INFO sqlalchemy.engine.Engine
+CREATE TABLE items (
+	id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	description VARCHAR(255),
+	tier INTEGER NOT NULL,
+	volume FLOAT NOT NULL,
+	PRIMARY KEY (id)
+)
+
+
+2026-02-05 09:13:13,853 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:13,856 INFO sqlalchemy.engine.Engine CREATE UNIQUE INDEX ix_items_name ON items (name)
+2026-02-05 09:13:13,856 INFO sqlalchemy.engine.Engine [no key 0.00014s] ()
+2026-02-05 09:13:13,859 INFO sqlalchemy.engine.Engine CREATE INDEX ix_items_id ON items (id)
+2026-02-05 09:13:13,859 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:13,862 INFO sqlalchemy.engine.Engine
+CREATE TABLE planets (
+	id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	x FLOAT NOT NULL,
+	y FLOAT NOT NULL,
+	slots INTEGER NOT NULL,
+	temperature FLOAT NOT NULL,
+	gravity FLOAT NOT NULL,
+	owner_id INTEGER,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(owner_id) REFERENCES users (id)
+)
+
+
+2026-02-05 09:13:13,862 INFO sqlalchemy.engine.Engine [no key 0.00016s] ()
+2026-02-05 09:13:13,865 INFO sqlalchemy.engine.Engine CREATE INDEX ix_planets_name ON planets (name)
+2026-02-05 09:13:13,865 INFO sqlalchemy.engine.Engine [no key 0.00012s] ()
+2026-02-05 09:13:13,868 INFO sqlalchemy.engine.Engine CREATE INDEX ix_planets_id ON planets (id)
+2026-02-05 09:13:13,868 INFO sqlalchemy.engine.Engine [no key 0.00017s] ()
+2026-02-05 09:13:13,871 INFO sqlalchemy.engine.Engine
+CREATE TABLE wallets (
+	id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	balance FLOAT NOT NULL,
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	UNIQUE (user_id),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+
+2026-02-05 09:13:13,871 INFO sqlalchemy.engine.Engine [no key 0.00017s] ()
+2026-02-05 09:13:13,874 INFO sqlalchemy.engine.Engine CREATE INDEX ix_wallets_id ON wallets (id)
+2026-02-05 09:13:13,874 INFO sqlalchemy.engine.Engine [no key 0.00012s] ()
+2026-02-05 09:13:13,877 INFO sqlalchemy.engine.Engine
+CREATE TABLE buildings (
+	id INTEGER NOT NULL,
+	planet_id INTEGER NOT NULL,
+	type VARCHAR(50) NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	finished_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(planet_id) REFERENCES planets (id)
+)
+
+
+2026-02-05 09:13:13,877 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:13,880 INFO sqlalchemy.engine.Engine CREATE INDEX ix_buildings_id ON buildings (id)
+2026-02-05 09:13:13,880 INFO sqlalchemy.engine.Engine [no key 0.00018s] ()
+2026-02-05 09:13:13,884 INFO sqlalchemy.engine.Engine
+CREATE TABLE fleets (
+	id INTEGER NOT NULL,
+	owner_id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	location_planet_id INTEGER,
+	destination_planet_id INTEGER,
+	arrival_time DATETIME,
+	status VARCHAR(20) NOT NULL,
+	cargo_capacity FLOAT NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(owner_id) REFERENCES users (id),
+	FOREIGN KEY(location_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(destination_planet_id) REFERENCES planets (id)
+)
+
+
+2026-02-05 09:13:13,884 INFO sqlalchemy.engine.Engine [no key 0.00014s] ()
+2026-02-05 09:13:13,887 INFO sqlalchemy.engine.Engine CREATE INDEX ix_fleets_id ON fleets (id)
+2026-02-05 09:13:13,887 INFO sqlalchemy.engine.Engine [no key 0.00012s] ()
+2026-02-05 09:13:13,890 INFO sqlalchemy.engine.Engine
+CREATE TABLE contracts (
+	id INTEGER NOT NULL,
+	issuer_id INTEGER NOT NULL,
+	contractor_id INTEGER,
+	origin_planet_id INTEGER NOT NULL,
+	destination_planet_id INTEGER NOT NULL,
+	item_id INTEGER NOT NULL,
+	quantity INTEGER NOT NULL,
+	reward_amount FLOAT NOT NULL,
+	collateral_amount FLOAT NOT NULL,
+	duration_seconds INTEGER NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	accepted_at DATETIME,
+	deadline DATETIME,
+	status VARCHAR(20) NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(issuer_id) REFERENCES users (id),
+	FOREIGN KEY(contractor_id) REFERENCES users (id),
+	FOREIGN KEY(origin_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(destination_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(item_id) REFERENCES items (id)
+)
+
+
+2026-02-05 09:13:13,890 INFO sqlalchemy.engine.Engine [no key 0.00024s] ()
+2026-02-05 09:13:13,894 INFO sqlalchemy.engine.Engine CREATE INDEX ix_contracts_id ON contracts (id)
+2026-02-05 09:13:13,894 INFO sqlalchemy.engine.Engine [no key 0.00017s] ()
+2026-02-05 09:13:13,897 INFO sqlalchemy.engine.Engine
+CREATE TABLE inventories (
+	id INTEGER NOT NULL,
+	planet_id INTEGER,
+	fleet_id INTEGER,
+	item_id INTEGER NOT NULL,
+	quantity INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(planet_id) REFERENCES planets (id),
+	FOREIGN KEY(fleet_id) REFERENCES fleets (id),
+	FOREIGN KEY(item_id) REFERENCES items (id)
+)
+
+
+2026-02-05 09:13:13,897 INFO sqlalchemy.engine.Engine [no key 0.00019s] ()
+2026-02-05 09:13:13,900 INFO sqlalchemy.engine.Engine CREATE INDEX ix_inventories_id ON inventories (id)
+2026-02-05 09:13:13,900 INFO sqlalchemy.engine.Engine [no key 0.00018s] ()
+2026-02-05 09:13:13,903 INFO sqlalchemy.engine.Engine COMMIT
+------------------------------ Captured log setup ------------------------------
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("users")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("users")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("planets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("planets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("items")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("items")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("inventories")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("inventories")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("wallets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("wallets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("buildings")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("buildings")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("fleets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("fleets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("contracts")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA temp.table_info("contracts")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE users (
+	id INTEGER NOT NULL,
+	discord_id VARCHAR(50) NOT NULL,
+	username VARCHAR(100),
+	avatar_url VARCHAR(255),
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00014s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_users_id ON users (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE UNIQUE INDEX ix_users_discord_id ON users (discord_id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00016s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE items (
+	id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	description VARCHAR(255),
+	tier INTEGER NOT NULL,
+	volume FLOAT NOT NULL,
+	PRIMARY KEY (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE UNIQUE INDEX ix_items_name ON items (name)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00014s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_items_id ON items (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE planets (
+	id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	x FLOAT NOT NULL,
+	y FLOAT NOT NULL,
+	slots INTEGER NOT NULL,
+	temperature FLOAT NOT NULL,
+	gravity FLOAT NOT NULL,
+	owner_id INTEGER,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(owner_id) REFERENCES users (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00016s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_planets_name ON planets (name)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_planets_id ON planets (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00017s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE wallets (
+	id INTEGER NOT NULL,
+	user_id INTEGER NOT NULL,
+	balance FLOAT NOT NULL,
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	UNIQUE (user_id),
+	FOREIGN KEY(user_id) REFERENCES users (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00017s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_wallets_id ON wallets (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE buildings (
+	id INTEGER NOT NULL,
+	planet_id INTEGER NOT NULL,
+	type VARCHAR(50) NOT NULL,
+	status VARCHAR(20) NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	finished_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(planet_id) REFERENCES planets (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_buildings_id ON buildings (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00018s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE fleets (
+	id INTEGER NOT NULL,
+	owner_id INTEGER NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	location_planet_id INTEGER,
+	destination_planet_id INTEGER,
+	arrival_time DATETIME,
+	status VARCHAR(20) NOT NULL,
+	cargo_capacity FLOAT NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	updated_at DATETIME,
+	PRIMARY KEY (id),
+	FOREIGN KEY(owner_id) REFERENCES users (id),
+	FOREIGN KEY(location_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(destination_planet_id) REFERENCES planets (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00014s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_fleets_id ON fleets (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE contracts (
+	id INTEGER NOT NULL,
+	issuer_id INTEGER NOT NULL,
+	contractor_id INTEGER,
+	origin_planet_id INTEGER NOT NULL,
+	destination_planet_id INTEGER NOT NULL,
+	item_id INTEGER NOT NULL,
+	quantity INTEGER NOT NULL,
+	reward_amount FLOAT NOT NULL,
+	collateral_amount FLOAT NOT NULL,
+	duration_seconds INTEGER NOT NULL,
+	created_at DATETIME DEFAULT (CURRENT_TIMESTAMP),
+	accepted_at DATETIME,
+	deadline DATETIME,
+	status VARCHAR(20) NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(issuer_id) REFERENCES users (id),
+	FOREIGN KEY(contractor_id) REFERENCES users (id),
+	FOREIGN KEY(origin_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(destination_planet_id) REFERENCES planets (id),
+	FOREIGN KEY(item_id) REFERENCES items (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00024s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_contracts_id ON contracts (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00017s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+CREATE TABLE inventories (
+	id INTEGER NOT NULL,
+	planet_id INTEGER,
+	fleet_id INTEGER,
+	item_id INTEGER NOT NULL,
+	quantity INTEGER NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(planet_id) REFERENCES planets (id),
+	FOREIGN KEY(fleet_id) REFERENCES fleets (id),
+	FOREIGN KEY(item_id) REFERENCES items (id)
+)
+
+
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00019s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 CREATE INDEX ix_inventories_id ON inventories (id)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00018s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2696 COMMIT
+----------------------------- Captured stdout call -----------------------------
+2026-02-05 09:13:13,907 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:13,942 INFO sqlalchemy.engine.Engine SELECT count(planets.id) AS count_1
+FROM planets
+2026-02-05 09:13:13,943 INFO sqlalchemy.engine.Engine [generated in 0.00024s] ()
+2026-02-05 09:13:13,948 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,948 INFO sqlalchemy.engine.Engine [generated in 0.00026s (insertmanyvalues) 1/10 (ordered; batch not supported)] ('Sigma-324', -268.9, 221.23, 5, 143.9, 1.85, None, None)
+2026-02-05 09:13:13,950 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,950 INFO sqlalchemy.engine.Engine [insertmanyvalues 2/10 (ordered; batch not supported)] ('Proxima Prime', 15.45, -178.77, 8, -3.6, 2.39, None, None)
+2026-02-05 09:13:13,951 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,952 INFO sqlalchemy.engine.Engine [insertmanyvalues 3/10 (ordered; batch not supported)] ('Rho X', -524.32, -570.43, 6, 60.7, 2.03, None, None)
+2026-02-05 09:13:13,953 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,953 INFO sqlalchemy.engine.Engine [insertmanyvalues 4/10 (ordered; batch not supported)] ('Altair I', -414.52, -750.67, 6, -108.2, 0.96, None, None)
+2026-02-05 09:13:13,954 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,954 INFO sqlalchemy.engine.Engine [insertmanyvalues 5/10 (ordered; batch not supported)] ('Omega V', -79.06, 345.21, 11, -114.6, 1.97, None, None)
+2026-02-05 09:13:13,955 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,955 INFO sqlalchemy.engine.Engine [insertmanyvalues 6/10 (ordered; batch not supported)] ('Sigma-52', 932.3, 372.42, 3, 23.9, 0.94, None, None)
+2026-02-05 09:13:13,956 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,956 INFO sqlalchemy.engine.Engine [insertmanyvalues 7/10 (ordered; batch not supported)] ('Gliese-178', -61.6, 639.38, 7, -34.2, 1.08, None, None)
+2026-02-05 09:13:13,957 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,957 INFO sqlalchemy.engine.Engine [insertmanyvalues 8/10 (ordered; batch not supported)] ('Omicron B', -711.25, -203.35, 9, 4.0, 1.09, None, None)
+2026-02-05 09:13:13,958 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,958 INFO sqlalchemy.engine.Engine [insertmanyvalues 9/10 (ordered; batch not supported)] ('Kappa VIII', -211.43, -555.98, 3, 138.1, 1.9, None, None)
+2026-02-05 09:13:13,959 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,959 INFO sqlalchemy.engine.Engine [insertmanyvalues 10/10 (ordered; batch not supported)] ('Tau VI', 275.05, 244.11, 12, -95.9, 2.07, None, None)
+2026-02-05 09:13:13,960 INFO sqlalchemy.engine.Engine COMMIT
+2026-02-05 09:13:13,966 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:13,967 INFO sqlalchemy.engine.Engine INSERT INTO users (discord_id, username, avatar_url, updated_at) VALUES (?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,967 INFO sqlalchemy.engine.Engine [generated in 0.00014s (insertmanyvalues) 1/2 (ordered; batch not supported)] ('issuer_8630', 'issuer', None, None)
+2026-02-05 09:13:13,968 INFO sqlalchemy.engine.Engine INSERT INTO users (discord_id, username, avatar_url, updated_at) VALUES (?, ?, ?, ?) RETURNING id, created_at
+2026-02-05 09:13:13,969 INFO sqlalchemy.engine.Engine [insertmanyvalues 2/2 (ordered; batch not supported)] ('contractor_8630', 'contractor', None, None)
+2026-02-05 09:13:13,970 INFO sqlalchemy.engine.Engine COMMIT
+2026-02-05 09:13:13,975 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:13,977 INFO sqlalchemy.engine.Engine SELECT users.id, users.discord_id, users.username, users.avatar_url, users.created_at, users.updated_at
+FROM users
+WHERE users.id = ?
+2026-02-05 09:13:13,977 INFO sqlalchemy.engine.Engine [generated in 0.00018s] (1,)
+2026-02-05 09:13:13,979 INFO sqlalchemy.engine.Engine SELECT users.id, users.discord_id, users.username, users.avatar_url, users.created_at, users.updated_at
+FROM users
+WHERE users.id = ?
+2026-02-05 09:13:13,979 INFO sqlalchemy.engine.Engine [cached since 0.002302s ago] (2,)
+2026-02-05 09:13:13,983 INFO sqlalchemy.engine.Engine INSERT INTO items (name, description, tier, volume) VALUES (?, ?, ?, ?)
+2026-02-05 09:13:13,983 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ('Test Cargo 8630', None, 1, 1.0)
+2026-02-05 09:13:13,985 INFO sqlalchemy.engine.Engine INSERT INTO wallets (user_id, balance, updated_at) VALUES (?, ?, ?) RETURNING id
+2026-02-05 09:13:13,985 INFO sqlalchemy.engine.Engine [generated in 0.00011s (insertmanyvalues) 1/2 (ordered; batch not supported)] (1, 10000.0, None)
+2026-02-05 09:13:13,986 INFO sqlalchemy.engine.Engine INSERT INTO wallets (user_id, balance, updated_at) VALUES (?, ?, ?) RETURNING id
+2026-02-05 09:13:13,986 INFO sqlalchemy.engine.Engine [insertmanyvalues 2/2 (ordered; batch not supported)] (2, 5000.0, None)
+2026-02-05 09:13:13,987 INFO sqlalchemy.engine.Engine COMMIT
+2026-02-05 09:13:13,991 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:13,992 INFO sqlalchemy.engine.Engine SELECT items.id, items.name, items.description, items.tier, items.volume
+FROM items
+WHERE items.id = ?
+2026-02-05 09:13:13,992 INFO sqlalchemy.engine.Engine [generated in 0.00024s] (1,)
+2026-02-05 09:13:13,995 INFO sqlalchemy.engine.Engine SELECT planets.id, planets.name, planets.x, planets.y, planets.slots, planets.temperature, planets.gravity, planets.owner_id, planets.created_at, planets.updated_at
+FROM planets
+ LIMIT ? OFFSET ?
+2026-02-05 09:13:13,995 INFO sqlalchemy.engine.Engine [generated in 0.00024s] (2, 0)
+2026-02-05 09:13:13,997 INFO sqlalchemy.engine.Engine SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url AS users_avatar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
+WHERE users.id = ?
+2026-02-05 09:13:13,997 INFO sqlalchemy.engine.Engine [generated in 0.00016s] (2,)
+2026-02-05 09:13:13,997 INFO sqlalchemy.engine.Engine ROLLBACK
+------------------------------ Captured log call -------------------------------
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT count(planets.id) AS count_1
+FROM planets
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00024s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [generated in 0.00026s (insertmanyvalues) 1/10 (ordered; batch not supported)] ('Sigma-324', -268.9, 221.23, 5, 143.9, 1.85, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 2/10 (ordered; batch not supported)] ('Proxima Prime', 15.45, -178.77, 8, -3.6, 2.39, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 3/10 (ordered; batch not supported)] ('Rho X', -524.32, -570.43, 6, 60.7, 2.03, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 4/10 (ordered; batch not supported)] ('Altair I', -414.52, -750.67, 6, -108.2, 0.96, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 5/10 (ordered; batch not supported)] ('Omega V', -79.06, 345.21, 11, -114.6, 1.97, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 6/10 (ordered; batch not supported)] ('Sigma-52', 932.3, 372.42, 3, 23.9, 0.94, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 7/10 (ordered; batch not supported)] ('Gliese-178', -61.6, 639.38, 7, -34.2, 1.08, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 8/10 (ordered; batch not supported)] ('Omicron B', -711.25, -203.35, 9, 4.0, 1.09, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 9/10 (ordered; batch not supported)] ('Kappa VIII', -211.43, -555.98, 3, 138.1, 1.9, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO planets (name, x, y, slots, temperature, gravity, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 10/10 (ordered; batch not supported)] ('Tau VI', 275.05, 244.11, 12, -95.9, 2.07, None, None)
+INFO     sqlalchemy.engine.Engine:base.py:2696 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO users (discord_id, username, avatar_url, updated_at) VALUES (?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [generated in 0.00014s (insertmanyvalues) 1/2 (ordered; batch not supported)] ('issuer_8630', 'issuer', None, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO users (discord_id, username, avatar_url, updated_at) VALUES (?, ?, ?, ?) RETURNING id, created_at
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 2/2 (ordered; batch not supported)] ('contractor_8630', 'contractor', None, None)
+INFO     sqlalchemy.engine.Engine:base.py:2696 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT users.id, users.discord_id, users.username, users.avatar_url, users.created_at, users.updated_at
+FROM users
+WHERE users.id = ?
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00018s] (1,)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT users.id, users.discord_id, users.username, users.avatar_url, users.created_at, users.updated_at
+FROM users
+WHERE users.id = ?
+INFO     sqlalchemy.engine.Engine:base.py:1848 [cached since 0.002302s ago] (2,)
+INFO     sqlalchemy.engine.Engine:base.py:1848 INSERT INTO items (name, description, tier, volume) VALUES (?, ?, ?, ?)
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00025s] ('Test Cargo 8630', None, 1, 1.0)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO wallets (user_id, balance, updated_at) VALUES (?, ?, ?) RETURNING id
+INFO     sqlalchemy.engine.Engine:base.py:1843 [generated in 0.00011s (insertmanyvalues) 1/2 (ordered; batch not supported)] (1, 10000.0, None)
+INFO     sqlalchemy.engine.Engine:base.py:1843 INSERT INTO wallets (user_id, balance, updated_at) VALUES (?, ?, ?) RETURNING id
+INFO     sqlalchemy.engine.Engine:base.py:1843 [insertmanyvalues 2/2 (ordered; batch not supported)] (2, 5000.0, None)
+INFO     sqlalchemy.engine.Engine:base.py:2696 COMMIT
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT items.id, items.name, items.description, items.tier, items.volume
+FROM items
+WHERE items.id = ?
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00024s] (1,)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT planets.id, planets.name, planets.x, planets.y, planets.slots, planets.temperature, planets.gravity, planets.owner_id, planets.created_at, planets.updated_at
+FROM planets
+ LIMIT ? OFFSET ?
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00024s] (2, 0)
+INFO     sqlalchemy.engine.Engine:base.py:1848 SELECT users.id AS users_id, users.discord_id AS users_discord_id, users.username AS users_username, users.avatar_url AS users_avatar_url, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
+WHERE users.id = ?
+INFO     sqlalchemy.engine.Engine:base.py:1848 [generated in 0.00016s] (2,)
+INFO     sqlalchemy.engine.Engine:base.py:2693 ROLLBACK
+--------------------------- Captured stdout teardown ---------------------------
+2026-02-05 09:13:14,591 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-05 09:13:14,592 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("users")
+2026-02-05 09:13:14,592 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,593 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("planets")
+2026-02-05 09:13:14,593 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,594 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("items")
+2026-02-05 09:13:14,594 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,595 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("inventories")
+2026-02-05 09:13:14,595 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,595 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("wallets")
+2026-02-05 09:13:14,595 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,596 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("buildings")
+2026-02-05 09:13:14,596 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,597 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("fleets")
+2026-02-05 09:13:14,597 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,598 INFO sqlalchemy.engine.Engine PRAGMA main.table_info("contracts")
+2026-02-05 09:13:14,598 INFO sqlalchemy.engine.Engine [raw sql] ()
+2026-02-05 09:13:14,599 INFO sqlalchemy.engine.Engine
+DROP TABLE inventories
+2026-02-05 09:13:14,599 INFO sqlalchemy.engine.Engine [no key 0.00014s] ()
+2026-02-05 09:13:14,602 INFO sqlalchemy.engine.Engine
+DROP TABLE contracts
+2026-02-05 09:13:14,603 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:14,606 INFO sqlalchemy.engine.Engine
+DROP TABLE fleets
+2026-02-05 09:13:14,606 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:14,609 INFO sqlalchemy.engine.Engine
+DROP TABLE buildings
+2026-02-05 09:13:14,609 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:14,612 INFO sqlalchemy.engine.Engine
+DROP TABLE wallets
+2026-02-05 09:13:14,612 INFO sqlalchemy.engine.Engine [no key 0.00012s] ()
+2026-02-05 09:13:14,615 INFO sqlalchemy.engine.Engine
+DROP TABLE planets
+2026-02-05 09:13:14,615 INFO sqlalchemy.engine.Engine [no key 0.00013s] ()
+2026-02-05 09:13:14,619 INFO sqlalchemy.engine.Engine
+DROP TABLE items
+2026-02-05 09:13:14,619 INFO sqlalchemy.engine.Engine [no key 0.00011s] ()
+2026-02-05 09:13:14,622 INFO sqlalchemy.engine.Engine
+DROP TABLE users
+2026-02-05 09:13:14,622 INFO sqlalchemy.engine.Engine [no key 0.00016s] ()
+2026-02-05 09:13:14,625 INFO sqlalchemy.engine.Engine COMMIT
+---------------------------- Captured log teardown -----------------------------
+INFO     sqlalchemy.engine.Engine:base.py:2690 BEGIN (implicit)
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("users")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("planets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("items")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("inventories")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("wallets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("buildings")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("fleets")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848 PRAGMA main.table_info("contracts")
+INFO     sqlalchemy.engine.Engine:base.py:1848 [raw sql] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE inventories
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00014s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE contracts
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE fleets
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE buildings
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE wallets
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00012s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE planets
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00013s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE items
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00011s] ()
+INFO     sqlalchemy.engine.Engine:base.py:1848
+DROP TABLE users
+INFO     sqlalchemy.engine.Engine:base.py:1848 [no key 0.00016s] ()
+INFO     sqlalchemy.engine.Engine:base.py:2696 COMMIT
+=============================== warnings summary ===============================
+app/core/config.py:4
+  /app/backend/app/core/config.py:4: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+app/schemas/planet.py:20
+  /app/backend/app/schemas/planet.py:20: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Planet(PlanetBase):
+
+app/schemas/item.py:13
+  /app/backend/app/schemas/item.py:13: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Item(ItemBase):
+
+app/schemas/inventory.py:14
+  /app/backend/app/schemas/inventory.py:14: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Inventory(InventoryBase):
+
+app/schemas/fleet.py:15
+  /app/backend/app/schemas/fleet.py:15: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class FleetResponse(FleetBase):
+
+app/schemas/contract.py:16
+  /app/backend/app/schemas/contract.py:16: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class ContractResponse(ContractBase):
+
+app/schemas/building.py:11
+  /app/backend/app/schemas/building.py:11: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Building(BuildingBase):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_contracts.py::test_contract_flow - sqlalchemy.exc.MissingGr...
+======================== 1 failed, 7 warnings in 1.81s =========================
