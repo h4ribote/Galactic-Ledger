@@ -13,8 +13,6 @@ class Planet(Base):
     # z = Column(Integer, nullable=False) # 2D for now as per requirements
 
     slots = Column(Integer, default=5, nullable=False)
-    temperature = Column(Integer, nullable=False) # Celsius? Kelvin? Just a value for now.
-    gravity = Column(Integer, default=1000, nullable=False) # Relative to Earth (1.0 -> 1000)
 
     owner_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
 

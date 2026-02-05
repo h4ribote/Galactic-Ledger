@@ -18,8 +18,6 @@ CREATE TABLE planets (
     x INTEGER NOT NULL,
     y INTEGER NOT NULL,
     slots INTEGER NOT NULL,
-    temperature INTEGER NOT NULL,
-    gravity INTEGER NOT NULL,
     owner_id BIGINT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME,

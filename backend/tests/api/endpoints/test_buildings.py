@@ -53,7 +53,7 @@ async def test_build_structure():
             balance = Balance(user_id=TEST_USER_ID, currency_type="CRED", amount=Decimal(500))
             session.add(balance)
 
-            planet = Planet(id=TEST_PLANET_ID, name="BuildWorld", x=10, y=10, owner_id=TEST_USER_ID, temperature=20, gravity=1)
+            planet = Planet(id=TEST_PLANET_ID, name="BuildWorld", x=10, y=10, owner_id=TEST_USER_ID)
             session.add(planet)
 
             # Ensure Item exists

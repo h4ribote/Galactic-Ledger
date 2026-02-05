@@ -7,8 +7,6 @@ class PlanetBase(BaseModel):
     x: int
     y: int
     slots: int
-    temperature: int
-    gravity: int
 
 class PlanetCreate(PlanetBase):
     pass
