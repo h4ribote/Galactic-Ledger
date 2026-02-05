@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, BigInteger
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -15,7 +15,7 @@ class Fleet(Base):
 
     arrival_time = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(20), default="IDLE", nullable=False) # IDLE, TRANSIT
-    cargo_capacity = Column(Float, default=100.0, nullable=False)
+    cargo_capacity = Column(Integer, default=100000, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

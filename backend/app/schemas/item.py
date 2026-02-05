@@ -5,7 +5,7 @@ class ItemBase(BaseModel):
     name: str
     description: Optional[str] = None
     tier: int = 1
-    volume: float = 1.0
+    volume: int = 1000
 
 class ItemCreate(ItemBase):
     pass

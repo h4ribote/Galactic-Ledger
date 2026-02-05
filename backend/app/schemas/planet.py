@@ -4,11 +4,11 @@ from pydantic import BaseModel
 
 class PlanetBase(BaseModel):
     name: str
-    x: float
-    y: float
+    x: int
+    y: int
     slots: int
-    temperature: float
-    gravity: float
+    temperature: int
+    gravity: int
 
 class PlanetCreate(PlanetBase):
     pass

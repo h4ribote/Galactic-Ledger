@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, BigInteger
+from sqlalchemy import Column, Integer, String, DECIMAL, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -17,8 +17,8 @@ class Contract(Base):
     quantity = Column(Integer, nullable=False)
 
     currency_type = Column(String(10), default="CRED", nullable=False)
-    reward_amount = Column(Float, nullable=False)
-    collateral_amount = Column(Float, nullable=False)
+    reward_amount = Column(DECIMAL(26, 0), nullable=False)
+    collateral_amount = Column(DECIMAL(26, 0), nullable=False)
     duration_seconds = Column(Integer, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

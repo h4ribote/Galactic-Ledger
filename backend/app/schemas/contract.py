@@ -1,14 +1,15 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from decimal import Decimal
 
 class ContractBase(BaseModel):
     destination_planet_id: int
     item_id: int
     quantity: int
     currency_type: str = "CRED"
-    reward_amount: float
-    collateral_amount: float
+    reward_amount: Decimal
+    collateral_amount: Decimal
     duration_seconds: int
 
 class ContractCreate(ContractBase):

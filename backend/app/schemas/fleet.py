@@ -19,7 +19,7 @@ class FleetResponse(FleetBase):
     destination_planet_id: Optional[int]
     arrival_time: Optional[datetime]
     status: str
-    cargo_capacity: float
+    cargo_capacity: int
     created_at: datetime
     updated_at: Optional[datetime]
 

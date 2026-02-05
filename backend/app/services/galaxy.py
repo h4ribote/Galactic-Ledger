@@ -39,11 +39,11 @@ async def initialize_galaxy(db: AsyncSession, planet_count: int = 100):
 
             planet = Planet(
                 name=name,
-                x=round(random.uniform(-1000, 1000), 2),
-                y=round(random.uniform(-1000, 1000), 2),
+                x=int(random.uniform(-1000, 1000) * 1000),
+                y=int(random.uniform(-1000, 1000) * 1000),
                 slots=random.randint(3, 12),
-                temperature=round(random.uniform(-150, 150), 1),
-                gravity=round(random.uniform(0.3, 2.5), 2),
+                temperature=int(random.uniform(-150, 150) * 1000),
+                gravity=int(random.uniform(0.3, 2.5) * 1000),
             )
             planets_to_create.append(planet)
 
