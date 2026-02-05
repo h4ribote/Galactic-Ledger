@@ -35,23 +35,24 @@ class AuthService:
 
     @staticmethod
     async def authenticate_user(db: AsyncSession, discord_user_data: Dict[str, Any]) -> User:
-        discord_id = discord_user_data["id"]
+        discord_id_str = discord_user_data["id"]
+        user_id = int(discord_id_str)
         username = discord_user_data.get("username")
         avatar = discord_user_data.get("avatar")
 
         # Construct avatar URL
         avatar_url = None
         if avatar:
-            avatar_url = f"https://cdn.discordapp.com/avatars/{discord_id}/{avatar}.png"
+            avatar_url = f"https://cdn.discordapp.com/avatars/{discord_id_str}/{avatar}.png"
 
         # Check if user exists
-        result = await db.execute(select(User).where(User.discord_id == discord_id))
+        result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
 
         if not user:
             # Create new user
             user = User(
-                discord_id=discord_id,
+                id=user_id,
                 username=username,
                 avatar_url=avatar_url
             )

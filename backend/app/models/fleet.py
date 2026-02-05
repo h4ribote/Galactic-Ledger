@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -7,7 +7,7 @@ class Fleet(Base):
     __tablename__ = "fleets"
 
     id = Column(Integer, primary_key=True, index=True)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
 
     location_planet_id = Column(Integer, ForeignKey("planets.id"), nullable=True)

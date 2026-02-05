@@ -46,8 +46,7 @@ def read_users_me(current_user: User = Depends(get_current_user)):
     return {
         "id": current_user.id,
         "username": current_user.username,
-        "avatar_url": current_user.avatar_url,
-        "discord_id": current_user.discord_id
+        "avatar_url": current_user.avatar_url
     }
 
 @router.get("/me/wallet", response_model=wallet_schema.Wallet)

@@ -1,8 +1,7 @@
 
 -- Users Table
 CREATE TABLE users (
-    id INTEGER NOT NULL AUTO_INCREMENT,
-    discord_id VARCHAR(50) NOT NULL,
+    id BIGINT NOT NULL,
     username VARCHAR(100),
     avatar_url VARCHAR(255),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -10,7 +9,6 @@ CREATE TABLE users (
     PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX ix_users_discord_id ON users (discord_id);
 CREATE INDEX ix_users_id ON users (id);
 
 -- Planets Table
@@ -22,7 +20,7 @@ CREATE TABLE planets (
     slots INTEGER NOT NULL,
     temperature FLOAT NOT NULL,
     gravity FLOAT NOT NULL,
-    owner_id INTEGER,
+    owner_id BIGINT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME,
     PRIMARY KEY (id),
@@ -48,7 +46,7 @@ CREATE UNIQUE INDEX ix_items_name ON items (name);
 -- Fleets Table
 CREATE TABLE fleets (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    owner_id INTEGER NOT NULL,
+    owner_id BIGINT NOT NULL,
     name VARCHAR(100) NOT NULL,
     location_planet_id INTEGER,
     destination_planet_id INTEGER,
@@ -84,7 +82,7 @@ CREATE INDEX ix_inventories_id ON inventories (id);
 -- Wallets Table
 CREATE TABLE wallets (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    user_id INTEGER NOT NULL,
+    user_id BIGINT NOT NULL,
     updated_at DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY(user_id) REFERENCES users (id),
@@ -123,8 +121,8 @@ CREATE INDEX ix_buildings_id ON buildings (id);
 -- Contracts Table
 CREATE TABLE contracts (
     id INTEGER NOT NULL AUTO_INCREMENT,
-    issuer_id INTEGER NOT NULL,
-    contractor_id INTEGER,
+    issuer_id BIGINT NOT NULL,
+    contractor_id BIGINT,
     origin_planet_id INTEGER NOT NULL,
     destination_planet_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,

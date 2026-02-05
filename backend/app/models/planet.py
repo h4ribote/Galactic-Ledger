@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -16,7 +16,7 @@ class Planet(Base):
     temperature = Column(Float, nullable=False) # Celsius? Kelvin? Just a value for now.
     gravity = Column(Float, default=1.0, nullable=False) # Relative to Earth (1.0)
 
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    owner_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

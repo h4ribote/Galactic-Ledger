@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, BigInteger
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.models.base import Base
@@ -7,8 +7,8 @@ class Contract(Base):
     __tablename__ = "contracts"
 
     id = Column(Integer, primary_key=True, index=True)
-    issuer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    contractor_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    issuer_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
+    contractor_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
 
     origin_planet_id = Column(Integer, ForeignKey("planets.id"), nullable=False)
     destination_planet_id = Column(Integer, ForeignKey("planets.id"), nullable=False)

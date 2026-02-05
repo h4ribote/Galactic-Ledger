@@ -48,8 +48,11 @@ async def test_contract_flow(setup_db):
 
         # Create Unique Users
         suffix = random.randint(1000, 9999)
-        issuer = User(discord_id=f"issuer_{suffix}", username="issuer")
-        contractor = User(discord_id=f"contractor_{suffix}", username="contractor")
+        issuer_id_val = random.randint(100000000000000000, 900000000000000000)
+        contractor_id_val = random.randint(100000000000000000, 900000000000000000)
+
+        issuer = User(id=issuer_id_val, username="issuer")
+        contractor = User(id=contractor_id_val, username="contractor")
         session.add_all([issuer, contractor])
         await session.commit()
         await session.refresh(issuer)
