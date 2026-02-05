@@ -22,7 +22,7 @@ async def get_or_create_balance(db: AsyncSession, user_id: int, currency_type: s
         Balance.currency_type == currency_type
     ))
     if not balance:
-        balance = Balance(user_id=user_id, currency_type=currency_type, amount=0.0)
+        balance = Balance(user_id=user_id, currency_type=currency_type, amount=0)
         db.add(balance)
         # We might need to flush to get the ID if needed immediately, but for updates it's fine.
     return balance

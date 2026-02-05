@@ -50,7 +50,7 @@ async def test_build_structure():
             user = User(id=TEST_USER_ID, discord_id="test_builder", username="Builder")
             session.add(user)
 
-            balance = Balance(user_id=TEST_USER_ID, currency_type="CRED", amount=Decimal(500.0))
+            balance = Balance(user_id=TEST_USER_ID, currency_type="CRED", amount=Decimal(500))
             session.add(balance)
 
             planet = Planet(id=TEST_PLANET_ID, name="BuildWorld", x=10, y=10, owner_id=TEST_USER_ID, temperature=20, gravity=1)
@@ -88,7 +88,7 @@ async def test_build_structure():
             res = await session.execute(select(Balance).where(Balance.user_id == TEST_USER_ID, Balance.currency_type == "CRED"))
             balance = res.scalars().first()
             # 500 - 100 = 400
-            assert balance.amount == Decimal(400.0)
+            assert balance.amount == Decimal(400)
 
             # Check Inventory
             # Iron Mine costs 10 Iron. 100 - 10 = 90

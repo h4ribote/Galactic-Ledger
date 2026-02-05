@@ -65,9 +65,9 @@ async def test_contract_flow(setup_db):
 
         # Create Balances
         # Issuer has 10000 CRED
-        b1 = Balance(user_id=issuer_id, currency_type="CRED", amount=Decimal(10000.0))
+        b1 = Balance(user_id=issuer_id, currency_type="CRED", amount=Decimal(10000))
         # Contractor has 5000 CRED
-        b2 = Balance(user_id=contractor_id, currency_type="CRED", amount=Decimal(5000.0))
+        b2 = Balance(user_id=contractor_id, currency_type="CRED", amount=Decimal(5000))
         session.add_all([b1, b2])
 
         # Create Item
@@ -109,8 +109,8 @@ async def test_contract_flow(setup_db):
             "item_id": item_id,
             "quantity": 50,
             "currency_type": "CRED", # Explicitly set currency type
-            "reward_amount": 1000.0,
-            "collateral_amount": 2000.0,
+            "reward_amount": 1000,
+            "collateral_amount": 2000,
             "duration_seconds": 3600
         }
 
@@ -163,7 +163,7 @@ async def test_contract_flow(setup_db):
 
         # Check Contractor Balance (Initial 5000 - 2000 Collat + 1000 Reward + 2000 Collat Return = 6000)
         b = await session.scalar(select(Balance).where(Balance.user_id == contractor_id, Balance.currency_type == "CRED"))
-        assert b.amount == Decimal(6000.0)
+        assert b.amount == Decimal(6000)
 
     # Cleanup overrides
     app.dependency_overrides = {}

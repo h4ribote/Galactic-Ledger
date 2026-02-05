@@ -40,7 +40,7 @@ async def build_structure(
 
     building_data = BUILDINGS[b_type]
     cost_currency = building_data.get("cost_currency", "CRED")
-    cost_amount = Decimal(building_data.get("cost_amount", 0.0))
+    cost_amount = Decimal(building_data.get("cost_amount", 0))
     cost_items = building_data.get("cost_items", {}) # dict { "ItemName": quantity }
     build_time = building_data["build_time_seconds"]
 
