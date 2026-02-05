@@ -7,13 +7,24 @@ from datetime import datetime, timedelta, timezone
 from app.api import deps
 from app.models.user import User
 from app.models.contract import Contract
-from app.models.wallet import Wallet
+from app.models.wallet import Wallet, WalletBalance
 from app.models.inventory import Inventory
 from app.models.fleet import Fleet
 from app.models.item import Item
 from app.schemas.contract import ContractCreate, ContractResponse
 
 router = APIRouter()
+
+async def get_or_create_wallet_balance(db: AsyncSession, wallet_id: int, currency_type: str) -> WalletBalance:
+    balance = await db.scalar(select(WalletBalance).where(
+        WalletBalance.wallet_id == wallet_id,
+        WalletBalance.currency_type == currency_type
+    ))
+    if not balance:
+        balance = WalletBalance(wallet_id=wallet_id, currency_type=currency_type, amount=0.0)
+        db.add(balance)
+        # We might need to flush to get the ID if needed immediately, but for updates it's fine.
+    return balance
 
 @router.post("/", response_model=ContractResponse)
 async def create_contract(
@@ -23,8 +34,15 @@ async def create_contract(
 ):
     # Check Wallet for Reward
     wallet = await db.scalar(select(Wallet).where(Wallet.user_id == current_user.id))
-    if not wallet or wallet.balance < contract_in.reward_amount:
-        raise HTTPException(status_code=400, detail="Insufficient funds for reward")
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    currency_type = contract_in.currency_type
+
+    # Check balance
+    balance = await get_or_create_wallet_balance(db, wallet.id, currency_type)
+    if balance.amount < contract_in.reward_amount:
+        raise HTTPException(status_code=400, detail=f"Insufficient {currency_type} for reward")
 
     # Check Inventory for Items
     inventory = await db.scalar(
@@ -37,7 +55,7 @@ async def create_contract(
         raise HTTPException(status_code=400, detail="Insufficient items at origin")
 
     # Deduct
-    wallet.balance -= contract_in.reward_amount
+    balance.amount -= contract_in.reward_amount
     inventory.quantity -= contract_in.quantity
 
     # Create Contract
@@ -47,6 +65,7 @@ async def create_contract(
         destination_planet_id=contract_in.destination_planet_id,
         item_id=contract_in.item_id,
         quantity=contract_in.quantity,
+        currency_type=currency_type,
         reward_amount=contract_in.reward_amount,
         collateral_amount=contract_in.collateral_amount,
         duration_seconds=contract_in.duration_seconds,
@@ -87,8 +106,12 @@ async def accept_contract(
 
     # Check Collateral
     wallet = await db.scalar(select(Wallet).where(Wallet.user_id == current_user.id))
-    if not wallet or wallet.balance < contract.collateral_amount:
-        raise HTTPException(status_code=400, detail="Insufficient funds for collateral")
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+
+    balance = await get_or_create_wallet_balance(db, wallet.id, contract.currency_type)
+    if balance.amount < contract.collateral_amount:
+        raise HTTPException(status_code=400, detail=f"Insufficient {contract.currency_type} for collateral")
 
     # Check Fleet
     fleet = await db.get(Fleet, fleet_id)
@@ -107,7 +130,8 @@ async def accept_contract(
          raise HTTPException(status_code=400, detail="Fleet capacity insufficient")
 
     # Execute Acceptance
-    wallet.balance -= contract.collateral_amount
+    balance.amount -= contract.collateral_amount
+    db.add(balance)
 
     # Add to Fleet Inventory
     fleet_inv = await db.scalar(
@@ -154,9 +178,11 @@ async def complete_contract(
         # Collateral logic (Give to Issuer)
         issuer_wallet = await db.scalar(select(Wallet).where(Wallet.user_id == contract.issuer_id))
         if issuer_wallet:
-            issuer_wallet.balance += contract.collateral_amount
+            issuer_balance = await get_or_create_wallet_balance(db, issuer_wallet.id, contract.currency_type)
+            issuer_balance.amount += contract.collateral_amount
             # Also return the reward to issuer
-            issuer_wallet.balance += contract.reward_amount
+            issuer_balance.amount += contract.reward_amount
+            db.add(issuer_balance)
 
         await db.commit()
         await db.refresh(contract)
@@ -198,8 +224,11 @@ async def complete_contract(
 
     # 3. Payout
     contractor_wallet = await db.scalar(select(Wallet).where(Wallet.user_id == current_user.id))
-    contractor_wallet.balance += contract.reward_amount
-    contractor_wallet.balance += contract.collateral_amount
+    if contractor_wallet:
+        contractor_balance = await get_or_create_wallet_balance(db, contractor_wallet.id, contract.currency_type)
+        contractor_balance.amount += contract.reward_amount
+        contractor_balance.amount += contract.collateral_amount
+        db.add(contractor_balance)
 
     contract.status = "COMPLETED"
 

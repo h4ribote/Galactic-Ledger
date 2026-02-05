@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, timezone
 from app.api import deps
 from app.models.user import User
 from app.models.planet import Planet
-from app.models.wallet import Wallet
+from app.models.wallet import Wallet, WalletBalance
 from app.models.inventory import Inventory
 from app.models.item import Item
 from app.models.building import Building
@@ -38,16 +38,26 @@ async def build_structure(
         raise HTTPException(status_code=400, detail="Invalid building type")
 
     building_data = BUILDINGS[b_type]
-    cost_credits = building_data["cost_credits"]
-    cost_items = building_data["cost_items"] # dict { "ItemName": quantity }
+    cost_currency = building_data.get("cost_currency", "CRED")
+    cost_amount = building_data.get("cost_amount", 0.0)
+    cost_items = building_data.get("cost_items", {}) # dict { "ItemName": quantity }
     build_time = building_data["build_time_seconds"]
 
     # 3. Check Wallet
     result = await db.execute(select(Wallet).where(Wallet.user_id == current_user.id))
     wallet = result.scalars().first()
+    if not wallet:
+         raise HTTPException(status_code=400, detail="Wallet not found")
 
-    if not wallet or wallet.balance < cost_credits:
-         raise HTTPException(status_code=400, detail="Insufficient credits")
+    # Find balance for the required currency
+    balance_result = await db.execute(select(WalletBalance).where(
+        WalletBalance.wallet_id == wallet.id,
+        WalletBalance.currency_type == cost_currency
+    ))
+    wallet_balance = balance_result.scalars().first()
+
+    if not wallet_balance or wallet_balance.amount < cost_amount:
+         raise HTTPException(status_code=400, detail=f"Insufficient {cost_currency}")
 
     # 4. Check Inventory (Resources)
     item_names = list(cost_items.keys())
@@ -73,8 +83,8 @@ async def build_structure(
                 raise HTTPException(status_code=400, detail=f"Insufficient {name}")
 
     # 5. Apply changes
-    wallet.balance -= cost_credits
-    db.add(wallet)
+    wallet_balance.amount -= cost_amount
+    db.add(wallet_balance)
 
     if item_names:
         for name, qty in cost_items.items():

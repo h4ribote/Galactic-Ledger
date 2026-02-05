@@ -85,7 +85,6 @@ CREATE INDEX ix_inventories_id ON inventories (id);
 CREATE TABLE wallets (
     id INTEGER NOT NULL AUTO_INCREMENT,
     user_id INTEGER NOT NULL,
-    balance FLOAT NOT NULL,
     updated_at DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY(user_id) REFERENCES users (id),
@@ -93,6 +92,19 @@ CREATE TABLE wallets (
 );
 
 CREATE INDEX ix_wallets_id ON wallets (id);
+
+-- Wallet Balances Table
+CREATE TABLE wallet_balances (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    wallet_id INTEGER NOT NULL,
+    currency_type VARCHAR(10) NOT NULL, -- CRED, IND, TECH, MIL, VOID
+    amount FLOAT DEFAULT 0.0,
+    PRIMARY KEY (id),
+    FOREIGN KEY(wallet_id) REFERENCES wallets (id),
+    UNIQUE (wallet_id, currency_type)
+);
+
+CREATE INDEX ix_wallet_balances_wallet ON wallet_balances (wallet_id);
 
 -- Buildings Table
 CREATE TABLE buildings (
@@ -117,6 +129,7 @@ CREATE TABLE contracts (
     destination_planet_id INTEGER NOT NULL,
     item_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
+    currency_type VARCHAR(10) DEFAULT 'CRED',
     reward_amount FLOAT NOT NULL,
     collateral_amount FLOAT NOT NULL,
     duration_seconds INTEGER NOT NULL,

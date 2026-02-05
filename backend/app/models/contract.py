@@ -16,6 +16,7 @@ class Contract(Base):
     item_id = Column(Integer, ForeignKey("items.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
 
+    currency_type = Column(String(10), default="CRED", nullable=False)
     reward_amount = Column(Float, nullable=False)
     collateral_amount = Column(Float, nullable=False)
     duration_seconds = Column(Integer, nullable=False)

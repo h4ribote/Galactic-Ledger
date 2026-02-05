@@ -4,7 +4,8 @@ BUILDINGS = {
     "IRON_MINE": {
         "name": "Iron Mine",
         "description": "Extracts iron ore from the planet.",
-        "cost_credits": 100.0,
+        "cost_currency": "CRED",
+        "cost_amount": 100.0,
         "cost_items": {
             "Iron": 10
         },
@@ -18,7 +19,8 @@ BUILDINGS = {
     "SOLAR_PLANT": {
         "name": "Solar Plant",
         "description": "Generates energy (not implemented yet).",
-        "cost_credits": 50.0,
+        "cost_currency": "IND",
+        "cost_amount": 50.0,
         "cost_items": {
             "Iron": 5
         },
