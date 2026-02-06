@@ -145,6 +145,49 @@ async def accept_contract(
     await db.refresh(contract)
     return contract
 
+@router.post("/{id}/cancel", response_model=ContractResponse)
+async def cancel_contract(
+    id: int,
+    current_user: User = Depends(deps.get_current_user),
+    db: AsyncSession = Depends(deps.get_db)
+):
+    contract = await db.get(Contract, id)
+    if not contract:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    if contract.issuer_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    if contract.status != "OPEN":
+        raise HTTPException(status_code=400, detail="Contract is not open")
+
+    # Refund Reward
+    issuer_balance = await get_or_create_balance(db, current_user.id, contract.currency_type)
+    issuer_balance.amount += Decimal(contract.reward_amount)
+    db.add(issuer_balance)
+
+    # Return Items to Origin Inventory
+    origin_inv = await db.scalar(
+        select(Inventory).where(
+            Inventory.user_id == current_user.id,
+            Inventory.planet_id == contract.origin_planet_id,
+            Inventory.item_id == contract.item_id
+        )
+    )
+    if origin_inv:
+        origin_inv.quantity += contract.quantity
+    else:
+        origin_inv = Inventory(
+            user_id=current_user.id,
+            planet_id=contract.origin_planet_id,
+            item_id=contract.item_id,
+            quantity=contract.quantity
+        )
+        db.add(origin_inv)
+
+    contract.status = "CANCELLED"
+    await db.commit()
+    await db.refresh(contract)
+    return contract
+
 @router.post("/{id}/complete", response_model=ContractResponse)
 async def complete_contract(
     id: int,

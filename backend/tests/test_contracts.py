@@ -86,7 +86,7 @@ async def test_contract_flow(setup_db):
         dest_id = destination.id
 
         # Create Inventory for Issuer at Origin
-        inv = Inventory(planet_id=origin_id, item_id=item_id, quantity=100)
+        inv = Inventory(planet_id=origin_id, item_id=item_id, quantity=100, user_id=issuer_id)
         session.add(inv)
 
         # Create Fleet for Contractor at Origin
@@ -139,9 +139,9 @@ async def test_contract_flow(setup_db):
         # Force Arrive (Hack: Modify DB directly)
         async with SessionLocal() as session:
             f = await session.get(Fleet, fleet_id)
-            from datetime import datetime, timezone
-            # Set arrival time to 1 second ago
-            f.arrival_time = datetime.now(timezone.utc)
+            from datetime import datetime, timezone, timedelta
+            # Set arrival time to 10 seconds ago to be safe
+            f.arrival_time = datetime.now(timezone.utc) - timedelta(seconds=10)
             await session.commit()
 
         # Call arrive endpoint
@@ -166,4 +166,89 @@ async def test_contract_flow(setup_db):
         assert b.amount == Decimal(6000)
 
     # Cleanup overrides
+    app.dependency_overrides = {}
+
+@pytest.mark.asyncio
+async def test_contract_cancel(setup_db):
+    # Setup Data
+    async with SessionLocal() as session:
+        await initialize_galaxy(session, planet_count=10)
+
+        # Create Issuer
+        issuer = User(id=900, username="issuer_cancel")
+        session.add(issuer)
+        await session.commit()
+        await session.refresh(issuer)
+        issuer_id = issuer.id
+
+        # Create Balance (Reward needs 1000)
+        b1 = Balance(user_id=issuer_id, currency_type="CRED", amount=Decimal(5000))
+        session.add(b1)
+
+        # Create Item
+        item = Item(name="Cancel Test Item", tier=1, volume=1.0)
+        session.add(item)
+        await session.commit()
+        await session.refresh(item)
+        item_id = item.id
+
+        # Get Origin
+        planet = await session.scalar(select(Planet).limit(1))
+        origin_id = planet.id
+        dest_id = origin_id # Same planet is fine for this test, or different
+
+        # Create Inventory
+        inv = Inventory(planet_id=origin_id, item_id=item_id, quantity=100, user_id=issuer_id)
+        session.add(inv)
+        await session.commit()
+
+    # Test Client
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+
+        # Override dependency to be our issuer
+        async def get_test_issuer_cancel():
+            async with SessionLocal() as session:
+                return await session.get(User, issuer_id)
+
+        app.dependency_overrides[deps.get_current_user] = get_test_issuer_cancel
+
+        # 1. Create Contract
+        contract_data = {
+            "origin_planet_id": origin_id,
+            "destination_planet_id": dest_id,
+            "item_id": item_id,
+            "quantity": 50,
+            "currency_type": "CRED",
+            "reward_amount": 1000,
+            "collateral_amount": 0,
+            "duration_seconds": 3600
+        }
+
+        res = await ac.post(f"{API_PREFIX}/contracts/", json=contract_data)
+        assert res.status_code == 200
+        contract = res.json()
+        contract_id = contract["id"]
+
+        # Check balance deducted (5000 - 1000 = 4000)
+        async with SessionLocal() as session:
+            b = await session.scalar(select(Balance).where(Balance.user_id == issuer_id))
+            assert b.amount == Decimal(4000)
+            # Check inventory deducted (100 - 50 = 50)
+            i = await session.scalar(select(Inventory).where(Inventory.user_id == issuer_id, Inventory.planet_id == origin_id))
+            assert i.quantity == 50
+
+        # 2. Cancel Contract
+        res = await ac.post(f"{API_PREFIX}/contracts/{contract_id}/cancel")
+        assert res.status_code == 200
+        contract = res.json()
+        assert contract["status"] == "CANCELLED"
+
+        # 3. Verify Refund
+        async with SessionLocal() as session:
+            b = await session.scalar(select(Balance).where(Balance.user_id == issuer_id))
+            assert b.amount == Decimal(5000)
+
+            i = await session.scalar(select(Inventory).where(Inventory.user_id == issuer_id, Inventory.planet_id == origin_id))
+            assert i.quantity == 100
+
     app.dependency_overrides = {}
