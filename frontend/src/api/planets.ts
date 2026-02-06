@@ -1,4 +1,4 @@
-import { api } from './client';
+import { client } from './client';
 
 export interface Planet {
   id: number;
@@ -10,6 +10,6 @@ export interface Planet {
 }
 
 export const fetchPlanets = async (): Promise<Planet[]> => {
-  const response = await api.get<Planet[]>('/planets/');
+  const response = await client.get<Planet[]>('/planets/');
   return response.data;
 };

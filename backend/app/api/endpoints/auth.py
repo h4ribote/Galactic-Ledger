@@ -7,8 +7,56 @@ from app.core import security
 from app.services.auth_service import AuthService
 from typing import Any
 import urllib.parse
+from pydantic import BaseModel
+import hashlib
+from sqlalchemy import select
+from app.models.user import User
 
 router = APIRouter()
+
+class DevLoginRequest(BaseModel):
+    username: str
+
+@router.post("/dev-login")
+async def dev_login(request: DevLoginRequest, db: AsyncSession = Depends(deps.get_db)) -> Any:
+    """
+    Development login endpoint. Creates a user if not exists based on username.
+    """
+    if settings.ENVIRONMENT != "development":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dev login is only available in development environment."
+        )
+
+    # Generate a deterministic ID based on username
+    # Use a hash modulo 10^9 to avoid conflicts with Discord Snowflakes
+    user_id = int(hashlib.md5(request.username.encode()).hexdigest(), 16) % 1000000000
+
+    # Check if user exists
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalars().first()
+
+    if not user:
+        user = User(
+            id=user_id,
+            username=request.username,
+            avatar_url=None
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    access_token_jwt = security.create_access_token(subject=user.id)
+
+    return {
+        "access_token": access_token_jwt,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "avatar_url": user.avatar_url
+        }
+    }
 
 @router.get("/login")
 def login_redirect():

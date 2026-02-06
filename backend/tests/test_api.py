@@ -15,6 +15,13 @@ async def test_create_item_and_inventory():
         async with SessionLocal() as session:
              await initialize_galaxy(session, planet_count=5)
 
+        # 0. Login
+        login_data = {"username": "testuser"}
+        response = await ac.post(f"{API_PREFIX}/auth/dev-login", json=login_data)
+        assert response.status_code == 200
+        token = response.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
         # 1. Create Item
         import random
         random_suffix = random.randint(1000, 9999)
@@ -26,13 +33,13 @@ async def test_create_item_and_inventory():
             "tier": 1,
             "volume": 1.0
         }
-        response = await ac.post(f"{API_PREFIX}/items/", json=item_data)
+        response = await ac.post(f"{API_PREFIX}/items/", json=item_data, headers=headers)
 
         if response.status_code == 200:
             item_id = response.json()["id"]
         else:
             # Fallback (should ideally not happen with random suffix unless collision)
-            response = await ac.get(f"{API_PREFIX}/items/")
+            response = await ac.get(f"{API_PREFIX}/items/", headers=headers)
             items = response.json()
             found_item = next((i for i in items if i["name"] == item_name), None)
             if found_item:
@@ -42,7 +49,7 @@ async def test_create_item_and_inventory():
                  assert response.status_code == 200
 
         # 2. Get Planets
-        response = await ac.get(f"{API_PREFIX}/planets/")
+        response = await ac.get(f"{API_PREFIX}/planets/", headers=headers)
         planets = response.json()
         assert len(planets) > 0
         planet_id = planets[0]["id"]
@@ -52,7 +59,7 @@ async def test_create_item_and_inventory():
             "item_id": item_id,
             "quantity": 100
         }
-        response = await ac.post(f"{API_PREFIX}/planets/{planet_id}/inventory", json=inventory_data)
+        response = await ac.post(f"{API_PREFIX}/planets/{planet_id}/inventory", json=inventory_data, headers=headers)
         assert response.status_code == 200
         data = response.json()
         assert data["planet_id"] == planet_id
@@ -60,7 +67,7 @@ async def test_create_item_and_inventory():
         assert data["quantity"] >= 100
 
         # 4. Get Inventory
-        response = await ac.get(f"{API_PREFIX}/planets/{planet_id}/inventory")
+        response = await ac.get(f"{API_PREFIX}/planets/{planet_id}/inventory", headers=headers)
         assert response.status_code == 200
         inventory_list = response.json()
         assert len(inventory_list) > 0

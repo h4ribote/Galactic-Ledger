@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     DISCORD_CLIENT_SECRET: Optional[str] = None
     DISCORD_REDIRECT_URI: Optional[str] = None
 
+    # Environment
+    ENVIRONMENT: str = "production"
+
     class Config:
         case_sensitive = True
         env_file = ".env"
