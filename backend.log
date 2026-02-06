@@ -1,0 +1,225 @@
+INFO:     Started server process [4317]
+INFO:     Waiting for application startup.
+2026-02-06 10:29:07,639 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-06 10:29:07,640 INFO sqlalchemy.engine.Engine SELECT 1
+2026-02-06 10:29:07,640 INFO sqlalchemy.engine.Engine [generated in 0.00025s] ()
+2026-02-06 10:29:07,641 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Database connection successful.
+2026-02-06 10:29:07,645 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-06 10:29:07,706 INFO sqlalchemy.engine.Engine SELECT count(planets.id) AS count_1
+FROM planets
+2026-02-06 10:29:07,706 INFO sqlalchemy.engine.Engine [generated in 0.00044s] ()
+2026-02-06 10:29:07,730 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,730 INFO sqlalchemy.engine.Engine [generated in 0.00080s (insertmanyvalues) 1/100 (ordered; batch not supported)] ('Rho IX', -344353, 968810, 6, None, None)
+2026-02-06 10:29:07,731 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,732 INFO sqlalchemy.engine.Engine [insertmanyvalues 2/100 (ordered; batch not supported)] ('Beta II', -763117, -78855, 6, None, None)
+2026-02-06 10:29:07,733 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,733 INFO sqlalchemy.engine.Engine [insertmanyvalues 3/100 (ordered; batch not supported)] ('Trappist IX', 647382, -877744, 12, None, None)
+2026-02-06 10:29:07,734 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,734 INFO sqlalchemy.engine.Engine [insertmanyvalues 4/100 (ordered; batch not supported)] ('Psi Minor', 976272, 241620, 6, None, None)
+2026-02-06 10:29:07,735 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,735 INFO sqlalchemy.engine.Engine [insertmanyvalues 5/100 (ordered; batch not supported)] ('Alpha-543', 368221, -803843, 12, None, None)
+2026-02-06 10:29:07,736 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,736 INFO sqlalchemy.engine.Engine [insertmanyvalues 6/100 (ordered; batch not supported)] ('Sigma III', 374631, -774482, 3, None, None)
+2026-02-06 10:29:07,737 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,737 INFO sqlalchemy.engine.Engine [insertmanyvalues 7/100 (ordered; batch not supported)] ('Chi VIII', 81185, -725852, 11, None, None)
+2026-02-06 10:29:07,737 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,737 INFO sqlalchemy.engine.Engine [insertmanyvalues 8/100 (ordered; batch not supported)] ('Upsilon C', 929493, -257306, 4, None, None)
+2026-02-06 10:29:07,738 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,738 INFO sqlalchemy.engine.Engine [insertmanyvalues 9/100 (ordered; batch not supported)] ('Kepler Minor', -29819, 119817, 7, None, None)
+2026-02-06 10:29:07,739 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,739 INFO sqlalchemy.engine.Engine [insertmanyvalues 10/100 (ordered; batch not supported)] ('Omega-469', 176285, 296829, 11, None, None)
+2026-02-06 10:29:07,739 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,739 INFO sqlalchemy.engine.Engine [insertmanyvalues 11/100 (ordered; batch not supported)] ('Nu IV', -797881, -250095, 9, None, None)
+2026-02-06 10:29:07,740 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,740 INFO sqlalchemy.engine.Engine [insertmanyvalues 12/100 (ordered; batch not supported)] ('Theta-514', 151679, -615751, 9, None, None)
+2026-02-06 10:29:07,741 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,741 INFO sqlalchemy.engine.Engine [insertmanyvalues 13/100 (ordered; batch not supported)] ('Iota-921', -551215, 548287, 9, None, None)
+2026-02-06 10:29:07,741 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,741 INFO sqlalchemy.engine.Engine [insertmanyvalues 14/100 (ordered; batch not supported)] ('Pi-549', -450683, 218399, 11, None, None)
+2026-02-06 10:29:07,742 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,742 INFO sqlalchemy.engine.Engine [insertmanyvalues 15/100 (ordered; batch not supported)] ('Sirius III', -756892, 100060, 8, None, None)
+2026-02-06 10:29:07,743 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,743 INFO sqlalchemy.engine.Engine [insertmanyvalues 16/100 (ordered; batch not supported)] ('Mu X', -715998, -580774, 9, None, None)
+2026-02-06 10:29:07,743 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,743 INFO sqlalchemy.engine.Engine [insertmanyvalues 17/100 (ordered; batch not supported)] ('Phi II', -685265, 29843, 12, None, None)
+2026-02-06 10:29:07,744 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,744 INFO sqlalchemy.engine.Engine [insertmanyvalues 18/100 (ordered; batch not supported)] ('Zeta X', -794154, 529032, 11, None, None)
+2026-02-06 10:29:07,745 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,745 INFO sqlalchemy.engine.Engine [insertmanyvalues 19/100 (ordered; batch not supported)] ('Psi-371', -795451, -7728, 3, None, None)
+2026-02-06 10:29:07,745 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,745 INFO sqlalchemy.engine.Engine [insertmanyvalues 20/100 (ordered; batch not supported)] ('Psi VIII', -183976, -620562, 6, None, None)
+2026-02-06 10:29:07,746 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,746 INFO sqlalchemy.engine.Engine [insertmanyvalues 21/100 (ordered; batch not supported)] ('Epsilon-17', -81126, -806647, 11, None, None)
+2026-02-06 10:29:07,747 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,747 INFO sqlalchemy.engine.Engine [insertmanyvalues 22/100 (ordered; batch not supported)] ('Alpha-172', 69951, -794300, 11, None, None)
+2026-02-06 10:29:07,748 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,748 INFO sqlalchemy.engine.Engine [insertmanyvalues 23/100 (ordered; batch not supported)] ('Kappa III', -415384, -284402, 11, None, None)
+2026-02-06 10:29:07,748 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,748 INFO sqlalchemy.engine.Engine [insertmanyvalues 24/100 (ordered; batch not supported)] ('Pi B', 498187, 406071, 5, None, None)
+2026-02-06 10:29:07,749 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,749 INFO sqlalchemy.engine.Engine [insertmanyvalues 25/100 (ordered; batch not supported)] ('Beta-705', 642031, -859730, 8, None, None)
+2026-02-06 10:29:07,750 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,750 INFO sqlalchemy.engine.Engine [insertmanyvalues 26/100 (ordered; batch not supported)] ('Chi-246', -649390, -846059, 11, None, None)
+2026-02-06 10:29:07,751 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,751 INFO sqlalchemy.engine.Engine [insertmanyvalues 27/100 (ordered; batch not supported)] ('Sigma-572', 659014, 323142, 10, None, None)
+2026-02-06 10:29:07,752 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,752 INFO sqlalchemy.engine.Engine [insertmanyvalues 28/100 (ordered; batch not supported)] ('Gliese Major', 295417, 681711, 7, None, None)
+2026-02-06 10:29:07,753 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,753 INFO sqlalchemy.engine.Engine [insertmanyvalues 29/100 (ordered; batch not supported)] ('Psi Prime', -79009, 160025, 11, None, None)
+2026-02-06 10:29:07,754 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,754 INFO sqlalchemy.engine.Engine [insertmanyvalues 30/100 (ordered; batch not supported)] ('Delta Major', 70104, 395591, 9, None, None)
+2026-02-06 10:29:07,754 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,754 INFO sqlalchemy.engine.Engine [insertmanyvalues 31/100 (ordered; batch not supported)] ('Vega X', 859658, 899650, 7, None, None)
+2026-02-06 10:29:07,755 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,755 INFO sqlalchemy.engine.Engine [insertmanyvalues 32/100 (ordered; batch not supported)] ('Trappist B', 26161, -163766, 6, None, None)
+2026-02-06 10:29:07,756 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,756 INFO sqlalchemy.engine.Engine [insertmanyvalues 33/100 (ordered; batch not supported)] ('Deneb-216', 878890, -296825, 12, None, None)
+2026-02-06 10:29:07,757 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,757 INFO sqlalchemy.engine.Engine [insertmanyvalues 34/100 (ordered; batch not supported)] ('Iota-807', 857669, -749952, 7, None, None)
+2026-02-06 10:29:07,757 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,758 INFO sqlalchemy.engine.Engine [insertmanyvalues 35/100 (ordered; batch not supported)] ('Rho-828', -762266, -306442, 12, None, None)
+2026-02-06 10:29:07,758 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,758 INFO sqlalchemy.engine.Engine [insertmanyvalues 36/100 (ordered; batch not supported)] ('Alpha-938', 323257, 144266, 10, None, None)
+2026-02-06 10:29:07,759 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,759 INFO sqlalchemy.engine.Engine [insertmanyvalues 37/100 (ordered; batch not supported)] ('Delta Minor', 891669, -277470, 5, None, None)
+2026-02-06 10:29:07,760 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,761 INFO sqlalchemy.engine.Engine [insertmanyvalues 38/100 (ordered; batch not supported)] ('Theta-11', -926439, 933513, 5, None, None)
+2026-02-06 10:29:07,761 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,761 INFO sqlalchemy.engine.Engine [insertmanyvalues 39/100 (ordered; batch not supported)] ('Nu-266', 741876, 357230, 12, None, None)
+2026-02-06 10:29:07,762 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,762 INFO sqlalchemy.engine.Engine [insertmanyvalues 40/100 (ordered; batch not supported)] ('Deneb-755', -803806, 812803, 8, None, None)
+2026-02-06 10:29:07,763 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,763 INFO sqlalchemy.engine.Engine [insertmanyvalues 41/100 (ordered; batch not supported)] ('Zeta Prime', 935615, -282186, 9, None, None)
+2026-02-06 10:29:07,764 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,764 INFO sqlalchemy.engine.Engine [insertmanyvalues 42/100 (ordered; batch not supported)] ('Tau IX', -449311, -973921, 4, None, None)
+2026-02-06 10:29:07,765 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,765 INFO sqlalchemy.engine.Engine [insertmanyvalues 43/100 (ordered; batch not supported)] ('Tau d', 668746, -916811, 3, None, None)
+2026-02-06 10:29:07,766 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,766 INFO sqlalchemy.engine.Engine [insertmanyvalues 44/100 (ordered; batch not supported)] ('Omega VIII', -249598, -602832, 8, None, None)
+2026-02-06 10:29:07,767 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,767 INFO sqlalchemy.engine.Engine [insertmanyvalues 45/100 (ordered; batch not supported)] ('Tau VII', 807345, -801551, 6, None, None)
+2026-02-06 10:29:07,767 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,767 INFO sqlalchemy.engine.Engine [insertmanyvalues 46/100 (ordered; batch not supported)] ('Eta I', 313762, -802916, 5, None, None)
+2026-02-06 10:29:07,768 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,768 INFO sqlalchemy.engine.Engine [insertmanyvalues 47/100 (ordered; batch not supported)] ('Kappa d', -578629, 833085, 9, None, None)
+2026-02-06 10:29:07,769 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,769 INFO sqlalchemy.engine.Engine [insertmanyvalues 48/100 (ordered; batch not supported)] ('Sirius VII', 824083, -300107, 4, None, None)
+2026-02-06 10:29:07,770 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,770 INFO sqlalchemy.engine.Engine [insertmanyvalues 49/100 (ordered; batch not supported)] ('Altair d', 128494, -780450, 9, None, None)
+2026-02-06 10:29:07,771 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,771 INFO sqlalchemy.engine.Engine [insertmanyvalues 50/100 (ordered; batch not supported)] ('Lambda-729', -927213, -538975, 6, None, None)
+2026-02-06 10:29:07,772 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,772 INFO sqlalchemy.engine.Engine [insertmanyvalues 51/100 (ordered; batch not supported)] ('Vega-508', 665265, -42358, 3, None, None)
+2026-02-06 10:29:07,773 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,773 INFO sqlalchemy.engine.Engine [insertmanyvalues 52/100 (ordered; batch not supported)] ('Epsilon-904', 982062, 428990, 9, None, None)
+2026-02-06 10:29:07,773 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,773 INFO sqlalchemy.engine.Engine [insertmanyvalues 53/100 (ordered; batch not supported)] ('Vega-977', 717130, -753862, 7, None, None)
+2026-02-06 10:29:07,774 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,774 INFO sqlalchemy.engine.Engine [insertmanyvalues 54/100 (ordered; batch not supported)] ('Upsilon-359', 846292, -677445, 12, None, None)
+2026-02-06 10:29:07,775 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,775 INFO sqlalchemy.engine.Engine [insertmanyvalues 55/100 (ordered; batch not supported)] ('Nu III', -294404, -376045, 9, None, None)
+2026-02-06 10:29:07,776 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,776 INFO sqlalchemy.engine.Engine [insertmanyvalues 56/100 (ordered; batch not supported)] ('Epsilon C', 354226, 781630, 5, None, None)
+2026-02-06 10:29:07,777 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,777 INFO sqlalchemy.engine.Engine [insertmanyvalues 57/100 (ordered; batch not supported)] ('Deneb VIII', 261564, -732497, 9, None, None)
+2026-02-06 10:29:07,778 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,778 INFO sqlalchemy.engine.Engine [insertmanyvalues 58/100 (ordered; batch not supported)] ('Sigma Minor', 478088, 178687, 12, None, None)
+2026-02-06 10:29:07,778 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,779 INFO sqlalchemy.engine.Engine [insertmanyvalues 59/100 (ordered; batch not supported)] ('Omicron V', -819991, -254398, 7, None, None)
+2026-02-06 10:29:07,779 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,779 INFO sqlalchemy.engine.Engine [insertmanyvalues 60/100 (ordered; batch not supported)] ('Altair-974', 687529, -358522, 3, None, None)
+2026-02-06 10:29:07,780 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,780 INFO sqlalchemy.engine.Engine [insertmanyvalues 61/100 (ordered; batch not supported)] ('Eta Minor', -154232, -76449, 9, None, None)
+2026-02-06 10:29:07,781 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,781 INFO sqlalchemy.engine.Engine [insertmanyvalues 62/100 (ordered; batch not supported)] ('Sirius IX', 856675, 660123, 12, None, None)
+2026-02-06 10:29:07,782 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,782 INFO sqlalchemy.engine.Engine [insertmanyvalues 63/100 (ordered; batch not supported)] ('Alpha I', 830415, 134209, 9, None, None)
+2026-02-06 10:29:07,782 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,783 INFO sqlalchemy.engine.Engine [insertmanyvalues 64/100 (ordered; batch not supported)] ('Delta-83', 816835, 380291, 5, None, None)
+2026-02-06 10:29:07,783 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,783 INFO sqlalchemy.engine.Engine [insertmanyvalues 65/100 (ordered; batch not supported)] ('Gamma Minor', -620536, 770413, 12, None, None)
+2026-02-06 10:29:07,784 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,784 INFO sqlalchemy.engine.Engine [insertmanyvalues 66/100 (ordered; batch not supported)] ('Gliese-855', -139628, -164154, 9, None, None)
+2026-02-06 10:29:07,785 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,785 INFO sqlalchemy.engine.Engine [insertmanyvalues 67/100 (ordered; batch not supported)] ('Epsilon-930', 996167, 895645, 4, None, None)
+2026-02-06 10:29:07,786 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,786 INFO sqlalchemy.engine.Engine [insertmanyvalues 68/100 (ordered; batch not supported)] ('Rho-436', -603875, 717370, 3, None, None)
+2026-02-06 10:29:07,787 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,787 INFO sqlalchemy.engine.Engine [insertmanyvalues 69/100 (ordered; batch not supported)] ('Alpha VIII', 962847, 833953, 11, None, None)
+2026-02-06 10:29:07,788 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,788 INFO sqlalchemy.engine.Engine [insertmanyvalues 70/100 (ordered; batch not supported)] ('Sirius IV', -821050, -373403, 12, None, None)
+2026-02-06 10:29:07,788 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,788 INFO sqlalchemy.engine.Engine [insertmanyvalues 71/100 (ordered; batch not supported)] ('Theta-445', 851103, 221999, 5, None, None)
+2026-02-06 10:29:07,789 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,789 INFO sqlalchemy.engine.Engine [insertmanyvalues 72/100 (ordered; batch not supported)] ('Gliese X', -355624, 814302, 10, None, None)
+2026-02-06 10:29:07,790 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,790 INFO sqlalchemy.engine.Engine [insertmanyvalues 73/100 (ordered; batch not supported)] ('Trappist-440', 899818, 675357, 8, None, None)
+2026-02-06 10:29:07,791 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,791 INFO sqlalchemy.engine.Engine [insertmanyvalues 74/100 (ordered; batch not supported)] ('Gamma B', -229154, -630647, 5, None, None)
+2026-02-06 10:29:07,791 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,792 INFO sqlalchemy.engine.Engine [insertmanyvalues 75/100 (ordered; batch not supported)] ('Lambda VIII', 40137, -69627, 7, None, None)
+2026-02-06 10:29:07,792 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,793 INFO sqlalchemy.engine.Engine [insertmanyvalues 76/100 (ordered; batch not supported)] ('Sigma IV', -490496, -462419, 3, None, None)
+2026-02-06 10:29:07,793 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,793 INFO sqlalchemy.engine.Engine [insertmanyvalues 77/100 (ordered; batch not supported)] ('Vega Minor', -281291, 402681, 6, None, None)
+2026-02-06 10:29:07,794 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,794 INFO sqlalchemy.engine.Engine [insertmanyvalues 78/100 (ordered; batch not supported)] ('Proxima B', 60860, -158049, 5, None, None)
+2026-02-06 10:29:07,795 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,795 INFO sqlalchemy.engine.Engine [insertmanyvalues 79/100 (ordered; batch not supported)] ('Deneb-622', 211088, -556243, 4, None, None)
+2026-02-06 10:29:07,795 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,795 INFO sqlalchemy.engine.Engine [insertmanyvalues 80/100 (ordered; batch not supported)] ('Lambda IX', 555790, 478483, 6, None, None)
+2026-02-06 10:29:07,796 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,796 INFO sqlalchemy.engine.Engine [insertmanyvalues 81/100 (ordered; batch not supported)] ('Sigma IX', -147749, 331153, 12, None, None)
+2026-02-06 10:29:07,797 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,797 INFO sqlalchemy.engine.Engine [insertmanyvalues 82/100 (ordered; batch not supported)] ('Lambda-426', 472159, -531225, 11, None, None)
+2026-02-06 10:29:07,798 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,798 INFO sqlalchemy.engine.Engine [insertmanyvalues 83/100 (ordered; batch not supported)] ('Gamma IX', 949388, 612744, 7, None, None)
+2026-02-06 10:29:07,799 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,799 INFO sqlalchemy.engine.Engine [insertmanyvalues 84/100 (ordered; batch not supported)] ('Sirius-367', 820094, -758346, 11, None, None)
+2026-02-06 10:29:07,799 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,799 INFO sqlalchemy.engine.Engine [insertmanyvalues 85/100 (ordered; batch not supported)] ('Kappa d', 81391, 85208, 9, None, None)
+2026-02-06 10:29:07,800 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,800 INFO sqlalchemy.engine.Engine [insertmanyvalues 86/100 (ordered; batch not supported)] ('Theta-638', 14226, 4195, 10, None, None)
+2026-02-06 10:29:07,801 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,801 INFO sqlalchemy.engine.Engine [insertmanyvalues 87/100 (ordered; batch not supported)] ('Proxima IX', -563713, 282429, 3, None, None)
+2026-02-06 10:29:07,802 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,802 INFO sqlalchemy.engine.Engine [insertmanyvalues 88/100 (ordered; batch not supported)] ('Lambda VII', -859894, -37274, 8, None, None)
+2026-02-06 10:29:07,803 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,803 INFO sqlalchemy.engine.Engine [insertmanyvalues 89/100 (ordered; batch not supported)] ('Phi VII', 975532, -948372, 11, None, None)
+2026-02-06 10:29:07,804 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,804 INFO sqlalchemy.engine.Engine [insertmanyvalues 90/100 (ordered; batch not supported)] ('Sirius-922', 159284, -28603, 5, None, None)
+2026-02-06 10:29:07,804 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,804 INFO sqlalchemy.engine.Engine [insertmanyvalues 91/100 (ordered; batch not supported)] ('Gliese-852', -980944, -455802, 12, None, None)
+2026-02-06 10:29:07,805 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,805 INFO sqlalchemy.engine.Engine [insertmanyvalues 92/100 (ordered; batch not supported)] ('Rho d', -988825, 532977, 4, None, None)
+2026-02-06 10:29:07,807 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,807 INFO sqlalchemy.engine.Engine [insertmanyvalues 93/100 (ordered; batch not supported)] ('Theta V', -476196, 238634, 9, None, None)
+2026-02-06 10:29:07,808 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,808 INFO sqlalchemy.engine.Engine [insertmanyvalues 94/100 (ordered; batch not supported)] ('Gliese-161', 584863, -350068, 6, None, None)
+2026-02-06 10:29:07,809 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,809 INFO sqlalchemy.engine.Engine [insertmanyvalues 95/100 (ordered; batch not supported)] ('Nu Major', -627040, -272827, 12, None, None)
+2026-02-06 10:29:07,810 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,810 INFO sqlalchemy.engine.Engine [insertmanyvalues 96/100 (ordered; batch not supported)] ('Delta IV', -158283, 173953, 9, None, None)
+2026-02-06 10:29:07,811 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,811 INFO sqlalchemy.engine.Engine [insertmanyvalues 97/100 (ordered; batch not supported)] ('Upsilon Minor', -71994, -582348, 5, None, None)
+2026-02-06 10:29:07,812 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,812 INFO sqlalchemy.engine.Engine [insertmanyvalues 98/100 (ordered; batch not supported)] ('Nu B', -47075, 971638, 7, None, None)
+2026-02-06 10:29:07,813 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,814 INFO sqlalchemy.engine.Engine [insertmanyvalues 99/100 (ordered; batch not supported)] ('Upsilon-724', 183864, 241421, 5, None, None)
+2026-02-06 10:29:07,815 INFO sqlalchemy.engine.Engine INSERT INTO planets (name, x, y, slots, owner_id, updated_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at
+2026-02-06 10:29:07,815 INFO sqlalchemy.engine.Engine [insertmanyvalues 100/100 (ordered; batch not supported)] ('Omega Prime', 521588, 212224, 9, None, None)
+2026-02-06 10:29:07,819 INFO sqlalchemy.engine.Engine COMMIT
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-02-06 10:29:51,558 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-02-06 10:29:51,560 INFO sqlalchemy.engine.Engine SELECT planets.id, planets.name, planets.x, planets.y, planets.slots, planets.owner_id, planets.created_at, planets.updated_at
+FROM planets
+ LIMIT ? OFFSET ?
+2026-02-06 10:29:51,561 INFO sqlalchemy.engine.Engine [generated in 0.00028s] (100, 0)
+2026-02-06 10:29:51,568 INFO sqlalchemy.engine.Engine ROLLBACK
+INFO:     127.0.0.1:45124 - "GET /api/v1/planets/ HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [4317]
