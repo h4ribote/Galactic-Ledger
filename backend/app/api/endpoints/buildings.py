@@ -70,6 +70,7 @@ async def build_structure(
         for name, qty in cost_items.items():
             item_id = items_map[name].id
             inv_result = await db.execute(select(Inventory).where(
+                Inventory.user_id == current_user.id,
                 Inventory.planet_id == planet_id,
                 Inventory.item_id == item_id
             ))
@@ -85,6 +86,7 @@ async def build_structure(
         for name, qty in cost_items.items():
              item_id = items_map[name].id
              inv_result = await db.execute(select(Inventory).where(
+                Inventory.user_id == current_user.id,
                 Inventory.planet_id == planet_id,
                 Inventory.item_id == item_id
             ))

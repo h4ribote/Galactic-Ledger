@@ -7,3 +7,4 @@ from app.models.wallet import Balance
 from app.models.building import Building
 from app.models.fleet import Fleet
 from app.models.contract import Contract
+from app.models.market import MarketOrder

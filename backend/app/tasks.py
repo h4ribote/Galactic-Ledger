@@ -37,7 +37,8 @@ async def _update_construction_status():
 async def _produce_resources():
     async with SessionLocal() as session:
         # Get all active buildings
-        query = select(Building).where(Building.status == "active")
+        from sqlalchemy.orm import joinedload
+        query = select(Building).options(joinedload(Building.planet)).where(Building.status == "active")
         result = await session.execute(query)
         buildings = result.scalars().all()
 
@@ -50,6 +51,9 @@ async def _produce_resources():
         updates_count = 0
 
         for building in buildings:
+            if not building.planet.owner_id:
+                continue
+
             b_data = BUILDINGS.get(building.type)
             if not b_data or "production" not in b_data or not b_data["production"]:
                 continue
@@ -75,13 +79,14 @@ async def _produce_resources():
 
             # Get or Create Inventory
             inv_query = select(Inventory).where(
-                and_(Inventory.planet_id == building.planet_id, Inventory.item_id == item_id)
+                and_(Inventory.user_id == building.planet.owner_id, Inventory.planet_id == building.planet_id, Inventory.item_id == item_id)
             )
             inv_res = await session.execute(inv_query)
             inventory = inv_res.scalars().first()
 
             if not inventory:
                 inventory = Inventory(
+                    user_id=building.planet.owner_id,
                     planet_id=building.planet_id,
                     item_id=item_id,
                     quantity=0

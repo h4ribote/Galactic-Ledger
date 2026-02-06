@@ -43,6 +43,7 @@ async def create_contract(
     # Check Inventory for Items
     inventory = await db.scalar(
         select(Inventory).where(
+            Inventory.user_id == current_user.id,
             Inventory.planet_id == contract_in.origin_planet_id,
             Inventory.item_id == contract_in.item_id
         )
@@ -132,7 +133,7 @@ async def accept_contract(
     if fleet_inv:
         fleet_inv.quantity += contract.quantity
     else:
-        new_inv = Inventory(fleet_id=fleet.id, item_id=contract.item_id, quantity=contract.quantity)
+        new_inv = Inventory(user_id=fleet.owner_id, fleet_id=fleet.id, item_id=contract.item_id, quantity=contract.quantity)
         db.add(new_inv)
 
     contract.contractor_id = current_user.id
@@ -202,6 +203,7 @@ async def complete_contract(
     # 2. Add to Issuer Inventory at Destination
     dest_inv = await db.scalar(
         select(Inventory).where(
+            Inventory.user_id == contract.issuer_id,
             Inventory.planet_id == contract.destination_planet_id,
             Inventory.item_id == contract.item_id
         )
@@ -210,7 +212,7 @@ async def complete_contract(
     if dest_inv:
         dest_inv.quantity += contract.quantity
     else:
-        dest_inv = Inventory(planet_id=contract.destination_planet_id, item_id=contract.item_id, quantity=contract.quantity)
+        dest_inv = Inventory(user_id=contract.issuer_id, planet_id=contract.destination_planet_id, item_id=contract.item_id, quantity=contract.quantity)
         db.add(dest_inv)
 
     # 3. Payout

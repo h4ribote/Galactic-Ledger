@@ -40,13 +40,16 @@ async def read_planet(
         raise HTTPException(status_code=404, detail="Planet not found")
     return planet
 
+from app.models.user import User
+
 @router.get("/{planet_id}/inventory", response_model=List[InventorySchema])
 async def read_planet_inventory(
     planet_id: int,
     db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
-    Get inventory of a planet.
+    Get inventory of a planet for the current user.
     """
     # Check if planet exists
     result = await db.execute(select(Planet).where(Planet.id == planet_id))
@@ -56,6 +59,7 @@ async def read_planet_inventory(
     result = await db.execute(
         select(Inventory)
         .where(Inventory.planet_id == planet_id)
+        .where(Inventory.user_id == current_user.id)
         .options(joinedload(Inventory.item))
     )
     inventory = result.scalars().all()
@@ -66,9 +70,10 @@ async def add_planet_inventory(
     planet_id: int,
     inventory_in: InventoryCreate,
     db: AsyncSession = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_user),
 ) -> Any:
     """
-    Add item to planet inventory (or update quantity).
+    Add item to planet inventory (or update quantity) for the current user.
     """
     # Check if planet exists
     result = await db.execute(select(Planet).where(Planet.id == planet_id))
@@ -85,6 +90,7 @@ async def add_planet_inventory(
         select(Inventory)
         .where(Inventory.planet_id == planet_id)
         .where(Inventory.item_id == inventory_in.item_id)
+        .where(Inventory.user_id == current_user.id)
         .options(joinedload(Inventory.item))
     )
     inventory_item = result.scalar_one_or_none()
@@ -98,6 +104,7 @@ async def add_planet_inventory(
         if inventory_in.quantity < 0:
              raise HTTPException(status_code=400, detail="Cannot create inventory with negative quantity")
         inventory_item = Inventory(
+            user_id=current_user.id,
             planet_id=planet_id,
             item_id=inventory_in.item_id,
             quantity=inventory_in.quantity

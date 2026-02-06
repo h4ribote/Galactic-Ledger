@@ -65,11 +65,13 @@ CREATE INDEX ix_fleets_owner ON fleets (owner_id);
 -- Inventories Table
 CREATE TABLE inventories (
     id INTEGER NOT NULL AUTO_INCREMENT,
+    user_id BIGINT,
     planet_id INTEGER,
     fleet_id INTEGER,
     item_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL,
     PRIMARY KEY (id),
+    FOREIGN KEY(user_id) REFERENCES users (id),
     FOREIGN KEY(item_id) REFERENCES items (id),
     FOREIGN KEY(planet_id) REFERENCES planets (id),
     FOREIGN KEY(fleet_id) REFERENCES fleets (id)
@@ -133,3 +135,27 @@ CREATE TABLE contracts (
 CREATE INDEX ix_contracts_id ON contracts (id);
 CREATE INDEX ix_contracts_issuer ON contracts (issuer_id);
 CREATE INDEX ix_contracts_contractor ON contracts (contractor_id);
+
+-- Market Orders Table
+CREATE TABLE market_orders (
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    planet_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    order_type VARCHAR(10) NOT NULL,
+    currency_type VARCHAR(10) DEFAULT 'CRED',
+    price DECIMAL(26, 0) NOT NULL,
+    quantity INTEGER NOT NULL,
+    filled_quantity INTEGER DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'OPEN',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY(user_id) REFERENCES users (id),
+    FOREIGN KEY(planet_id) REFERENCES planets (id),
+    FOREIGN KEY(item_id) REFERENCES items (id)
+);
+
+CREATE INDEX ix_market_orders_id ON market_orders (id);
+CREATE INDEX ix_market_orders_user ON market_orders (user_id);
+CREATE INDEX ix_market_orders_planet_item ON market_orders (planet_id, item_id);
