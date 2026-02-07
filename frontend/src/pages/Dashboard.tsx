@@ -1,8 +1,9 @@
-import { AppShell, Burger, Group, Title, Container, Table, Text, Loader, Center, Button } from '@mantine/core';
+import { AppShell, Burger, Group, Title, Container, Table, Text, Loader, Center, Button, Tabs } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlanets } from '../api/planets';
 import { useAuth } from '../context/AuthContext';
+import { FleetList } from '../components/FleetList';
 
 function PlanetList() {
   const { data: planets, isLoading, error } = useQuery({
@@ -13,7 +14,7 @@ function PlanetList() {
   if (isLoading) return <Center h={200}><Loader /></Center>;
   if (error) return <Text c="red">Error loading planets: {error.message}</Text>;
 
-  const rows = planets?.map((planet: any) => (
+  const rows = planets?.map((planet) => (
     <Table.Tr key={planet.id}>
       <Table.Td>{planet.id}</Table.Td>
       <Table.Td>{planet.name}</Table.Td>
@@ -71,8 +72,22 @@ export function Dashboard() {
 
       <AppShell.Main>
         <Container>
-          <Title order={2} mb="md">Planets</Title>
-          <PlanetList />
+          <Tabs defaultValue="fleets">
+            <Tabs.List mb="md">
+              <Tabs.Tab value="planets">Planets</Tabs.Tab>
+              <Tabs.Tab value="fleets">Fleets</Tabs.Tab>
+            </Tabs.List>
+
+            <Tabs.Panel value="planets">
+              <Title order={2} mb="md">Planets</Title>
+              <PlanetList />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="fleets">
+              <Title order={2} mb="md">Fleets</Title>
+              <FleetList />
+            </Tabs.Panel>
+          </Tabs>
         </Container>
       </AppShell.Main>
     </AppShell>
