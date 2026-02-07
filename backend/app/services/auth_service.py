@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.config import settings
 from app.models.user import User
+from app.services.user_service import initialize_new_user
 
 class AuthService:
     DISCORD_API_URL = "https://discord.com/api/v10"
@@ -49,6 +50,7 @@ class AuthService:
         result = await db.execute(select(User).where(User.id == user_id))
         user = result.scalars().first()
 
+        is_new_user = False
         if not user:
             # Create new user
             user = User(
@@ -57,10 +59,14 @@ class AuthService:
                 avatar_url=avatar_url
             )
             db.add(user)
+            is_new_user = True
         else:
             # Update existing user info
             user.username = username
             user.avatar_url = avatar_url
+
+        if is_new_user:
+            await initialize_new_user(user, db)
 
         await db.commit()
         await db.refresh(user)
