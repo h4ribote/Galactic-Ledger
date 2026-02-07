@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0
+    image: public.ecr.aws/docker/library/mysql:8.0
     container_name: galactic_ledger_db
     restart: always
     environment:
@@ -15,7 +15,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
-    image: redis:7
+    image: public.ecr.aws/docker/library/redis:7
     container_name: galactic_ledger_redis
     ports:
       - "6379:6379"
@@ -63,7 +63,7 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8000/api/v1
     depends_on:
       - backend
 
