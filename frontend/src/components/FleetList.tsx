@@ -1,4 +1,4 @@
-import { Table, Button, Group, Text, Loader, Modal, Select, TextInput } from '@mantine/core';
+import { Table, Button, Group, Text, Loader, Modal, Select, TextInput, Badge } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import type { Fleet, FleetCreate } from '../api/fleets';
 import { fetchPlanets } from '../api/planets';
 import { notifications } from '@mantine/notifications';
 import { AxiosError } from 'axios';
+import { IconRocket, IconArrowRight, IconMapPin } from '@tabler/icons-react';
 
 export function FleetList() {
   const queryClient = useQueryClient();
@@ -92,26 +93,60 @@ export function FleetList() {
   const planetOptions = planets?.map(p => ({ value: p.id.toString(), label: p.name })) || [];
   const planetMap = new Map(planets?.map(p => [p.id, p.name]));
 
-  if (fleetsLoading) return <Loader />;
+  if (fleetsLoading) return <Loader color="brand" />;
 
   const rows = fleets?.map((fleet) => {
     const isArrived = fleet.status === 'TRANSIT' && fleet.arrival_time && new Date(fleet.arrival_time) <= new Date();
 
     return (
       <Table.Tr key={fleet.id}>
-        <Table.Td>{fleet.id}</Table.Td>
-        <Table.Td>{fleet.name}</Table.Td>
-        <Table.Td>{fleet.status}</Table.Td>
-        <Table.Td>{fleet.location_planet_id ? planetMap.get(fleet.location_planet_id) : '-'}</Table.Td>
-        <Table.Td>{fleet.destination_planet_id ? planetMap.get(fleet.destination_planet_id) : '-'}</Table.Td>
-        <Table.Td>{fleet.arrival_time ? new Date(fleet.arrival_time).toLocaleString() : '-'}</Table.Td>
+        <Table.Td style={{ color: '#00f2ff', fontFamily: 'JetBrains Mono' }}>{fleet.id}</Table.Td>
+        <Table.Td style={{ fontWeight: 600 }}>{fleet.name}</Table.Td>
         <Table.Td>
-          <Group>
+            <Badge
+                color={fleet.status === 'TRANSIT' ? 'orange' : 'green'}
+                variant="outline"
+                size="sm"
+            >
+                {fleet.status}
+            </Badge>
+        </Table.Td>
+        <Table.Td>
+            {fleet.location_planet_id ? (
+                <Group gap={4}>
+                    <IconMapPin size={14} color="gray" />
+                    <Text size="sm">{planetMap.get(fleet.location_planet_id)}</Text>
+                </Group>
+            ) : '-'}
+        </Table.Td>
+        <Table.Td>
+            {fleet.destination_planet_id ? (
+                <Group gap={4}>
+                    <IconArrowRight size={14} color="orange" />
+                    <Text size="sm">{planetMap.get(fleet.destination_planet_id)}</Text>
+                </Group>
+            ) : '-'}
+        </Table.Td>
+        <Table.Td style={{ fontFamily: 'JetBrains Mono', fontSize: '0.85em' }}>
+            {fleet.arrival_time ? new Date(fleet.arrival_time).toLocaleString() : '--:--:--'}
+        </Table.Td>
+        <Table.Td>
+          <Group gap={4}>
             {fleet.status === 'IDLE' && (
-              <Button size="xs" onClick={() => handleMoveClick(fleet)}>Move</Button>
+              <Button
+                size="compact-xs"
+                variant="light"
+                color="brand"
+                onClick={() => handleMoveClick(fleet)}
+                style={{ border: '1px solid rgba(0, 242, 255, 0.3)' }}
+              >
+                MOVE
+              </Button>
             )}
             {isArrived && (
-              <Button size="xs" color="green" onClick={() => handleArriveClick(fleet.id)}>Arrive</Button>
+              <Button size="compact-xs" color="green" variant="filled" onClick={() => handleArriveClick(fleet.id)}>
+                ARRIVE
+              </Button>
             )}
           </Group>
         </Table.Td>
@@ -121,60 +156,61 @@ export function FleetList() {
 
   return (
     <>
-      <Group justify="space-between" mb="md">
-        <Text size="xl" fw={700}>Fleets</Text>
-        <Button onClick={openCreate}>Create Fleet</Button>
+      <Group justify="flex-end" mb="md">
+        <Button onClick={openCreate} leftSection={<IconRocket size={16}/>} color="brand" variant="filled">
+            COMMISSION NEW FLEET
+        </Button>
       </Group>
 
-      <Table>
+      <Table verticalSpacing="sm" withTableBorder={false}>
         <Table.Thead>
           <Table.Tr>
             <Table.Th>ID</Table.Th>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Location</Table.Th>
-            <Table.Th>Destination</Table.Th>
-            <Table.Th>Arrival Time</Table.Th>
-            <Table.Th>Actions</Table.Th>
+            <Table.Th>CALLSIGN</Table.Th>
+            <Table.Th>STATUS</Table.Th>
+            <Table.Th>CURRENT LOC</Table.Th>
+            <Table.Th>DESTINATION</Table.Th>
+            <Table.Th>ETA / ARRIVAL</Table.Th>
+            <Table.Th>COMMAND</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
       </Table>
 
       {/* Move Fleet Modal */}
-      <Modal opened={openedMove} onClose={closeMove} title={`Move Fleet: ${selectedFleet?.name}`}>
+      <Modal opened={openedMove} onClose={closeMove} title={`INITIATE TRANSIT: ${selectedFleet?.name?.toUpperCase()}`}>
         <Select
-          label="Destination"
-          placeholder="Select planet"
+          label="DESTINATION VECTOR"
+          placeholder="Select Target Planet"
           data={planetOptions.filter(p => p.value !== selectedFleet?.location_planet_id?.toString())}
           value={destinationId}
           onChange={setDestinationId}
           mb="md"
         />
-        <Button fullWidth onClick={handleConfirmMove} loading={moveMutation.isPending}>
-          Confirm Move
+        <Button fullWidth onClick={handleConfirmMove} loading={moveMutation.isPending} color="orange">
+          ENGAGE HYPERDRIVE
         </Button>
       </Modal>
 
       {/* Create Fleet Modal */}
-      <Modal opened={openedCreate} onClose={closeCreate} title="Create New Fleet">
+      <Modal opened={openedCreate} onClose={closeCreate} title="FLEET COMMISSIONING">
         <TextInput
-          label="Fleet Name"
+          label="FLEET DESIGNATION"
           placeholder="Enter fleet name"
           value={newFleetName}
           onChange={(e) => setNewFleetName(e.currentTarget.value)}
           mb="sm"
         />
         <Select
-          label="Starting Planet"
+          label="DEPLOYMENT POINT"
           placeholder="Select planet"
           data={planetOptions}
           value={startPlanetId}
           onChange={setStartPlanetId}
           mb="md"
         />
-        <Button fullWidth onClick={handleCreate} loading={createMutation.isPending}>
-          Create Fleet
+        <Button fullWidth onClick={handleCreate} loading={createMutation.isPending} color="brand">
+          COMMISSION
         </Button>
       </Modal>
     </>
