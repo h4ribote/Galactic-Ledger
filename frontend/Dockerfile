@@ -2,7 +2,7 @@ FROM public.ecr.aws/docker/library/node:20-slim
 
 RUN mkdir /app
 COPY package.json package-lock.json /app/
-RUN cd /app && npm install
+RUN cd /app && npm install --legacy-peer-deps
 
 COPY . /app
 
