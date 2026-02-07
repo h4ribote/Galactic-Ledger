@@ -1,4 +1,4 @@
-import { AppShell, Burger, Group, Title, Container, Table, Text, Loader, Center, Button, Tabs, Box, Badge, Stack } from '@mantine/core';
+import { AppShell, Burger, Group, Title, Container, Table, Text, Loader, Center, Button, Box, Badge, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPlanets } from '../api/planets';
@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { FleetList } from '../components/FleetList';
 import { GalaxyMap } from '../features/map/GalaxyMap';
 import { IconMap, IconPlanet, IconRocket, IconLogout, IconUser } from '@tabler/icons-react';
+import { useState } from 'react';
 
 function PlanetList() {
   const { data: planets, isLoading, error } = useQuery({
@@ -53,6 +54,7 @@ function PlanetList() {
 export function Dashboard() {
   const [opened, { toggle }] = useDisclosure();
   const { logout, user } = useAuth();
+  const [activeTab, setActiveTab] = useState<string>('map');
 
   return (
     <AppShell
@@ -94,10 +96,34 @@ export function Dashboard() {
       <AppShell.Navbar p="md" style={{ borderRight: '1px solid rgba(0, 242, 255, 0.1)' }}>
         <Stack gap="xs">
             <Text size="xs" c="dimmed" mb="xs" tt="uppercase" style={{ letterSpacing: '1px' }}>Modules</Text>
-            {/* Ideally these buttons would control the tabs or routing, currently tabs are local state */}
-            <Button variant="light" color="brand" justify="flex-start" leftSection={<IconMap size={16} />}>GALAXY MAP</Button>
-            <Button variant="subtle" color="gray" justify="flex-start" leftSection={<IconPlanet size={16} />}>PLANETS</Button>
-            <Button variant="subtle" color="gray" justify="flex-start" leftSection={<IconRocket size={16} />}>FLEETS</Button>
+
+            <Button
+              variant={activeTab === 'map' ? "light" : "subtle"}
+              color={activeTab === 'map' ? "brand" : "gray"}
+              justify="flex-start"
+              leftSection={<IconMap size={16} />}
+              onClick={() => setActiveTab('map')}
+            >
+              GALAXY MAP
+            </Button>
+            <Button
+              variant={activeTab === 'planets' ? "light" : "subtle"}
+              color={activeTab === 'planets' ? "brand" : "gray"}
+              justify="flex-start"
+              leftSection={<IconPlanet size={16} />}
+              onClick={() => setActiveTab('planets')}
+            >
+              PLANETS
+            </Button>
+            <Button
+              variant={activeTab === 'fleets' ? "light" : "subtle"}
+              color={activeTab === 'fleets' ? "brand" : "gray"}
+              justify="flex-start"
+              leftSection={<IconRocket size={16} />}
+              onClick={() => setActiveTab('fleets')}
+            >
+              FLEETS
+            </Button>
         </Stack>
 
         <Box mt="auto">
@@ -110,33 +136,25 @@ export function Dashboard() {
 
       <AppShell.Main>
         <Container size="xl" fluid>
-          <Tabs defaultValue="map" variant="pills" color="brand" radius={0}>
-            <Tabs.List mb="md" grow>
-              <Tabs.Tab value="map" leftSection={<IconMap size={14} />}>TACTICAL MAP</Tabs.Tab>
-              <Tabs.Tab value="planets" leftSection={<IconPlanet size={14} />}>PLANETARY DATA</Tabs.Tab>
-              <Tabs.Tab value="fleets" leftSection={<IconRocket size={14} />}>FLEET COMMAND</Tabs.Tab>
-            </Tabs.List>
+          {activeTab === 'map' && (
+            <Box className="glass" p={2} style={{ border: '1px solid #00f2ff', boxShadow: '0 0 10px rgba(0, 242, 255, 0.1)' }}>
+               <GalaxyMap />
+            </Box>
+          )}
 
-            <Tabs.Panel value="map">
-              <Box className="glass" p={2} style={{ border: '1px solid #00f2ff', boxShadow: '0 0 10px rgba(0, 242, 255, 0.1)' }}>
-                 <GalaxyMap />
-              </Box>
-            </Tabs.Panel>
+          {activeTab === 'planets' && (
+            <PlanetList />
+          )}
 
-            <Tabs.Panel value="planets">
-              <PlanetList />
-            </Tabs.Panel>
-
-            <Tabs.Panel value="fleets">
-              <Box className="glass" p="md">
-                 <Group justify="space-between" mb="md" className="panel-header">
-                    <Text fw={700}>ACTIVE FLEETS</Text>
-                    <Badge color="orange" variant="outline">RESTRICTED</Badge>
-                </Group>
-                <FleetList />
-              </Box>
-            </Tabs.Panel>
-          </Tabs>
+          {activeTab === 'fleets' && (
+            <Box className="glass" p="md">
+               <Group justify="space-between" mb="md" className="panel-header">
+                  <Text fw={700}>ACTIVE FLEETS</Text>
+                  <Badge color="orange" variant="outline">RESTRICTED</Badge>
+              </Group>
+              <FleetList />
+            </Box>
+          )}
         </Container>
       </AppShell.Main>
     </AppShell>
