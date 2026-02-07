@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchPlanets } from '../api/planets';
 import { useAuth } from '../context/AuthContext';
 import { FleetList } from '../components/FleetList';
+import { GalaxyMap } from '../features/map/GalaxyMap';
 
 function PlanetList() {
   const { data: planets, isLoading, error } = useQuery({
@@ -71,12 +72,17 @@ export function Dashboard() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Container>
-          <Tabs defaultValue="fleets">
+        <Container size="xl">
+          <Tabs defaultValue="map">
             <Tabs.List mb="md">
+              <Tabs.Tab value="map">Galaxy Map</Tabs.Tab>
               <Tabs.Tab value="planets">Planets</Tabs.Tab>
               <Tabs.Tab value="fleets">Fleets</Tabs.Tab>
             </Tabs.List>
+
+            <Tabs.Panel value="map">
+              <GalaxyMap />
+            </Tabs.Panel>
 
             <Tabs.Panel value="planets">
               <Title order={2} mb="md">Planets</Title>

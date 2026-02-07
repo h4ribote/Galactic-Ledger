@@ -7,6 +7,7 @@ from app.db.session import engine, SessionLocal
 from app.core.config import settings
 from app.api.api import api_router
 from app.services.galaxy import initialize_galaxy
+from app.models.base import Base
 
 # Setup logger
 logger = logging.getLogger("uvicorn.info")
@@ -15,6 +16,10 @@ logger = logging.getLogger("uvicorn.info")
 async def lifespan(app: FastAPI):
     # Startup
     try:
+        # Create tables
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+
         # Verify DB connection
         async with engine.begin() as conn:
             await conn.execute(text("SELECT 1"))
